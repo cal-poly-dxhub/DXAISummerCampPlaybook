@@ -1,0 +1,16 @@
+[project]
+name = "bedrocktoolsdemo"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "boto3>=1.38.18",
+    "ddgs>=9.5.5",
+    "langchain>=0.3.26",
+    "langchain-aws>=0.2.27",
+    "langchain-community>=0.3.27",
+    "langchain-core>=0.3.71",
+    "numexpr>=2.11.0",
+    "streamlit>=1.45.1",
+]
