@@ -10,15 +10,16 @@ The script is designed to handle document uploading for multiple teams participa
 
 Before running the script, you should review and modify these important variables at the top of the script:
 
-| Variable | Description | Default Value | Recommended Action |
-|----------|-------------|---------------|-------------------|
-| `DATA_DIR` | Local directory where all team folders are stored | `./Data` | Update to the actual path of your data directory |
-| `REGION` | AWS region where S3 buckets will be created | `us-west-2` | Change to your preferred region (e.g., `us-east-1`) |
-| `LOG_FILE` | Path for the log file | `upload_results_[timestamp].log` | Leave as is or specify a fixed filename |
-| `TOTAL_TEAMS` | Number of teams to process | `5` | Update to match the number of teams in the `TEAM_FOLDERS` array |
-| `BUCKET_PREFIX` | Prefix for all S3 bucket names | `ccc-summer-camp-2025` | Change to a unique prefix for your project |
+| Variable        | Description                                       | Default Value                    | Recommended Action                                              |
+| --------------- | ------------------------------------------------- | -------------------------------- | --------------------------------------------------------------- |
+| `DATA_DIR`      | Local directory where all team folders are stored | `./Data`                         | Update to the actual path of your data directory                |
+| `REGION`        | AWS region where S3 buckets will be created       | `us-west-2`                      | Change to your preferred region (e.g., `us-east-1`)             |
+| `LOG_FILE`      | Path for the log file                             | `upload_results_[timestamp].log` | Leave as is or specify a fixed filename                         |
+| `TOTAL_TEAMS`   | Number of teams to process                        | `5`                              | Update to match the number of teams in the `TEAM_FOLDERS` array |
+| `BUCKET_PREFIX` | Prefix for all S3 bucket names                    | `ccc-summer-camp-2025`           | Change to a unique prefix for your project                      |
 
 The S3 bucket names are automatically generated with the format:
+
 ```
 [BUCKET_PREFIX]-[team-name-in-lowercase-with-hyphens]
 ```
@@ -95,6 +96,7 @@ chmod +x upload_docs.sh
 To add more teams, update these sections:
 
 1. Add team names to the `get_profile()` function:
+
 ```bash
 get_profile() {
     case "$1" in
@@ -107,6 +109,7 @@ get_profile() {
 ```
 
 2. Add team names to the `TEAM_FOLDERS` array:
+
 ```bash
 TEAM_FOLDERS=(
   "Team A - Math Placement Tool"
@@ -120,6 +123,7 @@ TEAM_FOLDERS=(
 ### Changing Bucket Names
 
 Modify the bucket naming format by editing this line in the script:
+
 ```bash
 BUCKET_NAME="ccc-summer-camp-2025-$(echo "$TEAM_FOLDER" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | tr -cd 'a-z0-9-')"
 ```
@@ -137,6 +141,7 @@ BUCKET_NAME="ccc-summer-camp-2025-$(echo "$TEAM_FOLDER" | tr '[:upper:]' '[:lowe
 Buckets are named using the format: `[BUCKET_PREFIX]-[team-name-in-lowercase-with-hyphens]`
 
 The default bucket prefix is `ccc-summer-camp-2025`, which makes bucket names like:
+
 - `ccc-summer-camp-2025-team-a-math-placement-tool`
 - `ccc-summer-camp-2025-team-b-documentation-assistant`
 
@@ -147,22 +152,27 @@ The script generates a timestamped log file (e.g., `upload_results_20250901_1200
 ## Common Issues and Troubleshooting
 
 ### AWS Profile Issues
+
 - **Error:** `No profile defined for [team name]`
+
   - **Solution:** Add the team name to the `get_profile()` function with the correct profile name
 
 - **Error:** `The config profile [profile] could not be found`
   - **Solution:** Ensure the profile exists in your AWS configuration files
 
 ### Data Directory Issues
+
 - **Error:** `Folder not found at [path]`
   - **Solution:** Verify that the `DATA_DIR` path is correct and the team folder exists
 
 ### Bucket Creation Issues
+
 - **Error:** `Failed to create [bucket name]`
   - **Solution:** Check permissions for the AWS profile, or try a different bucket name
   - **Note:** S3 bucket names must be globally unique across all AWS accounts
 
 ### Permissions
+
 - Make sure each AWS profile has permissions to:
   - Create S3 buckets
   - Put objects in S3 buckets
