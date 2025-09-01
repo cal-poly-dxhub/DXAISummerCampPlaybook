@@ -93,14 +93,15 @@ def main():
     remove_and_delete_all_users(idstore, store_id, group_id)
     # delete_group(idstore, store_id, group_id)
 
+
 def process_multiple_groups(group_names, profile="master", region="us-west-2"):
     """
     Loops through multiple group names, removes all members and PERMANENTLY DELETES those users.
-    
+
     WARNING: This is a destructive operation that cannot be undone.
     - All users in the specified groups will be completely deleted from IAM Identity Center
     - The groups themselves will not be deleted (uncomment the delete_group call if needed)
-    
+
     Args:
         group_names: List of group names to process
         profile: AWS profile to use
@@ -120,10 +121,11 @@ def process_multiple_groups(group_names, profile="master", region="us-west-2"):
         except ValueError as e:
             print(f"❌ {e}")
 
+
 if __name__ == '__main__':
     group_list = [
-    "Hackathon1",
-    "Hackathon2"
+        "Hackathon1",
+        "Hackathon2"
     ]
 
     process_multiple_groups(group_list)

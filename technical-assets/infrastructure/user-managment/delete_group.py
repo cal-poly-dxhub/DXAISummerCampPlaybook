@@ -65,7 +65,8 @@ def main():
         sys.exit(1)
 
     remove_all_users_from_group(idstore, store_id, group_id)
-    delete_group(idstore, store_id, group_id) # Uncomment to delete the group itself
+    # Uncomment to delete the group itself
+    delete_group(idstore, store_id, group_id)
 
 
 if __name__ == '__main__':

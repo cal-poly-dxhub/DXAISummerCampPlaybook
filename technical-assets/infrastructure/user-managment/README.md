@@ -17,12 +17,14 @@ This directory contains Python scripts for managing users and groups in AWS IAM 
 Creates new users in IAM Identity Center from a CSV file and optionally assigns them to groups.
 
 **Usage:**
+
 ```bash
 python add_users.py <csv_path> [aws_profile] [region]
 ```
 
 **CSV Format Example:**
 See [Add_Users_Ex.csv](./Add_Users_Ex.csv) for the format, which includes:
+
 - First name
 - Last name
 - Email
@@ -34,12 +36,14 @@ See [Add_Users_Ex.csv](./Add_Users_Ex.csv) for the format, which includes:
 Assigns IAM Identity Center groups to AWS accounts with specific permission sets.
 
 **Usage:**
+
 ```bash
 python assign_groups_to_accounts.py <csv_file> [--profile PROFILE] [--region REGION]
 ```
 
 **CSV Format Example:**
 See [Assign_Group_Ex.csv](./Assign_Group_Ex.csv) for the format, which includes:
+
 - GroupName
 - AccountName
 - PermissionSetName
@@ -49,17 +53,20 @@ See [Assign_Group_Ex.csv](./Assign_Group_Ex.csv) for the format, which includes:
 Moves users from one group to another, or adds users to a new group without removing them from existing groups. Also handles the necessary permission updates.
 
 **Key Features:**
+
 - If "From Group" is specified, the user is removed from that group and added to the "To Group"
 - If "From Group" is left empty, the user is simply added to the "To Group" without being removed from any existing groups
 - Automatically assigns the appropriate AWS account permissions
 
 **Usage:**
+
 ```bash
 python switch_groups.py <csv_file> [--profile PROFILE] [--region REGION]
 ```
 
 **CSV Format Example:**
 See [Switch_Group_Ex.csv](./Switch_Group_Ex.csv) for the format, which includes:
+
 - Email
 - From Group (optional) - Leave blank to add to a new group without removing from existing groups
 - To Group
@@ -69,6 +76,7 @@ See [Switch_Group_Ex.csv](./Switch_Group_Ex.csv) for the format, which includes:
 Removes all users from a group and deletes the group itself. This script does NOT delete the users themselves, only their membership in the group.
 
 **Usage:**
+
 ```bash
 python delete_group.py <group_name> [aws_profile] [region]
 ```
@@ -80,10 +88,12 @@ python delete_group.py <group_name> [aws_profile] [region]
 This script removes users from specified groups AND PERMANENTLY DELETES those users from the IAM Identity Center. This is a destructive operation that cannot be undone.
 
 Key differences from delete_group.py:
+
 - delete_group.py: Removes users from a group but preserves the users
 - delete_users_in_group.py: Removes AND permanently deletes the users
 
 **Usage:**
+
 ```bash
 python delete_users_in_group.py <group_name> [aws_profile] [region]
 ```
