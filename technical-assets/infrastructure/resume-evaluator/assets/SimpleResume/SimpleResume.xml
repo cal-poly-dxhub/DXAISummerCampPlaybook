@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SimpleResume>
+    <Details>
+        <TeamworkAndCollaboration description="Participation in and contribution to group projects, teams, or collaborative initiatives. Focus on ability to work effectively with others towards a shared goal.">
+            <EvidenceEntries description="List of evidence entries found in participant documentation related to teamwork and collaboration.">
+                <Entry impact_level="Major|Supporting|Minor">
+                    <EntryTitle>Title of Project or Experience</EntryTitle>
+                    <Summary source_section="Relevant Resume Section (e.g., Experience, Projects, Activities)">
+                        <IdentifiedExamples>List a specific team project, group work, etc. found in the documentation.</IdentifiedExamples>
+                        <AssessedRole>Describe the candidate's role and how they contributed in this example.</AssessedRole>
+                        <EvidenceOfContribution>Detail instances where their work led to team success or how they helped resolve issues.</EvidenceOfContribution>
+                        <ScaleAndComplexity>Describe the size of the team, duration of the project, and complexity of the task.</ScaleAndComplexity>
+                    </Summary>
+                    <KeyObservationsAndEvidence source_section="Relevant Resume Section (e.g., Experience, Projects, Activities)">
+                        <SpecificEvidences>List bullet points providing concrete evidence (e.g., "Led subgroup responsible for X", "Collaborated on Y report").</SpecificEvidences>
+                        <NotableObservations>Add observations about the *quality* of collaboration demonstrated based on the evidence (e.g., "Strong example of mediating conflict", "Role description for team project is minimal").</NotableObservations>
+                    </KeyObservationsAndEvidence>
+                </Entry>
+                ...Other entries can be added here following the same structure...
+            </EvidenceEntries>
+        </TeamworkAndCollaboration>
+        <InitiativeAndDrive description="Evidence of self-motivation, proactivity, starting new projects or activities without explicit direction, and taking action to achieve goals.">
+            <OverallAssessment>Brief summary of overall initiative and drive.</OverallAssessment>
+            <EvidenceEntries description="List of evidence entries found in participant documentation related to initiative and drive.">
+                <Entry impact_level="Major|Supporting|Minor" source_document_section="Relevant Resume Section">
+                    <EntryTitle>Name of Project/Experience</EntryTitle>
+                    <Summary>
+                        <SelfDrivenProjects>List independent projects, entrepreneurial efforts, etc.</SelfDrivenProjects>
+                        <ComplexityAndImpact>Describe the difficulty and outcome of these initiatives.</ComplexityAndImpact>
+                        <ProactivityPattern>Comment on whether initiative is a recurring theme.</ProactivityPattern>
+                        <IndependenceAssessment>Evaluate how much guidance seems to have been needed.</IndependenceAssessment>
+                    </Summary>
+                    <KeyObservationsAndEvidence>
+                        <SpecificEvidences>List concrete examples from the resume.</SpecificEvidences>
+                        <NotableObservations>Highlight specific challenges overcome or novel creations.</NotableObservations>
+                    </KeyObservationsAndEvidence>
+                </Entry>
+                ...Other entries can be added here following the same structure...
+            </EvidenceEntries>
+        </InitiativeAndDrive>
+        <LearningAgilityAndPotential description="Evidence of continuous learning, adaptability, seeking new knowledge, self-improvement through diverse experiences, and intellectual curiosity suggesting strong future potential.">
+            <OverallAssessment>Brief summary of overall learning agility.</OverallAssessment>
+            <EvidenceEntries description="List of evidence entries found in participant documentation related to learning agility and potential.">
+                <Entry impact_level="Major|Supporting|Minor">
+                    <EntryTitle>Name of Project/Experience/Certification</EntryTitle>
+                    <Summary>
+                        <IdentifiedLearningActivities>List relevant courses, certifications, workshops, etc.</IdentifiedLearningActivities>
+                        <BreadthAndDepth>Comment on the variety of topics/skills explored.</BreadthAndDepth>
+                        <OvercomingChallengesEvidence>Detail any instances where learning new skills helped them succeed.</OvercomingChallengesEvidence>
+                        <AdaptabilityAssessment>Comment on their ability to transition between fields or roles.</AdaptabilityAssessment>
+                        <NonTechnicalBackgroundLearning>If applicable, explain how their non-technical background shows capacity for learning.</NonTechnicalBackgroundLearning>
+                    </Summary>
+                    <KeyObservationsAndEvidence>
+                        <SpecificEvidences>List concrete evidence.</SpecificEvidences>
+                        <NotableObservations>Point out particularly strong examples of seeking out knowledge.</NotableObservations>
+                    </KeyObservationsAndEvidence>
+                </Entry>
+                ...Other entries can be added here following the same structure...
+            </EvidenceEntries>
+        </LearningAgilityAndPotential>
+        <ProblemSolving description="Demonstrated ability to identify, analyze, and solve complex problems effectively. Focus on analytical thinking and practical application of knowledge.">
+            <OverallAssessment>Brief summary of overall problem-solving skills.</OverallAssessment>
+            <EvidenceEntries description="List of evidence entries found in participant documentation related to problem-solving.">
+                <Entry impact_level="Major|Supporting|Minor">
+                    <EntryTitle>Name of Project/Experience</EntryTitle>
+                    <Summary>
+                        <IdentifiedProblems>Describe problems the candidate explicitly mentioned addressing.</IdentifiedProblems>
+                        <DescribedApproach>Detail how the candidate described their method for solving the problem.</DescribedApproach>
+                        <ComplexityAndSignificance>Assess how difficult or impactful the problem seems to have been.</ComplexityAndSignificance>
+                        <CriticalThinkingEvidence>Note any descriptions that show analytical depth.</CriticalThinkingEvidence>
+                    </Summary>
+                    <KeyObservationsAndEvidence>
+                        <SpecificEvidences>List concrete evidence.</SpecificEvidences>
+                        <NotableObservations>Highlight strong examples of problem-solving.</NotableObservations>
+                    </KeyObservationsAndEvidence>
+                </Entry>
+                ...Other entries can be added here following the same structure...
+            </EvidenceEntries>
+        </ProblemSolving>
+        <CreativityAndInnovation description="Originality in project design, novel approaches to challenges, innovative solutions, or entrepreneurial activities showing out-of-the-box thinking.">
+            <OverallAssessment>Brief summary of overall creativity and innovation.</OverallAssessment>
+            <EvidenceEntries description="List of evidence entries found in participant documentation related to creativity and innovation.">
+                <Entry impact_level="Major|Supporting|Minor">
+                    <EntryTitle>Name of Project/Experience</EntryTitle>
+                    <Summary>
+                        <IdentifiedCreativeWork>List projects, ideas, or ventures presented as original.</IdentifiedCreativeWork>
+                        <OriginalityAssessment>Evaluate how genuinely novel the described work appears.</OriginalityAssessment>
+                        <InterdisciplinaryEvidence>Note any projects that merge concepts from different fields.</InterdisciplinaryEvidence>
+                        <ImpactAndRecognition>Detail any awards or recognition mentioned.</ImpactAndRecognition>
+                    </Summary>
+                    <KeyObservationsAndEvidence>
+                        <SpecificEvidences>List concrete examples.</SpecificEvidences>
+                        <NotableObservations>Highlight particularly strong examples of creativity.</NotableObservations>
+                    </KeyObservationsAndEvidence>
+                </Entry>
+                ...Other entries can be added here following the same structure...
+            </EvidenceEntries>
+        </CreativityAndInnovation>
+        <LeadershipAndInfluence description="Involvement in community, clubs, or initiatives with demonstrated leadership roles and impact on guiding or influencing others.">
+            <OverallAssessment>Brief summary of overall leadership and influence.</OverallAssessment>
+            <EvidenceEntries description="List of evidence entries found in participant documentation related to leadership and influence.">
+                <Entry impact_level="Major|Supporting|Minor">
+                    <EntryTitle>Name of Role/Activity</EntryTitle>
+                    <Summary>
+                        <IdentifiedRoles>List leadership titles or roles.</IdentifiedRoles>
+                        <ScopeAndResponsibility>Describe the size of the group and their duties.</ScopeAndResponsibility>
+                        <ImpactEvidence>Detail any results achieved by the group under their leadership.</ImpactEvidence>
+                        <OrganizationalSkills>Comment on any descriptions of planning or team motivation.</OrganizationalSkills>
+                    </Summary>
+                    <KeyObservationsAndEvidence>
+                        <SpecificEvidences>List concrete examples.</SpecificEvidences>
+                        <NotableObservations>Highlight strong leadership achievements.</NotableObservations>
+                    </KeyObservationsAndEvidence>
+                </Entry>
+                ...Other entries can be added here following the same structure...
+            </EvidenceEntries>
+        </LeadershipAndInfluence>
+        <TechnicalExperienceAndSkills description="Experience working with machine learning, artificial intelligence, computer science, data science, programming, and related technical fields.">
+            <OverallAssessment>Brief summary of overall technical experience and skills.</OverallAssessment>
+            <EvidenceEntries description="List of evidence entries found in participant documentation related to technical experience and skills.">
+                <Entry impact_level="Major|Supporting|Minor">
+                    <EntryTitle>Name of Project/Experience</EntryTitle>
+                    <Summary>
+                        <ClaimedExperienceAndSkills>List technologies, languages, frameworks, etc., for this specific entry.</ClaimedExperienceAndSkills>
+                        <ClaimsEvaluationNotes>Note any claims that seem unusual for this entry.</ClaimsEvaluationNotes>
+                        <AlignmentNotes>Comment on whether their background supports the skills claimed in this context.</AlignmentNotes>
+                        <SpecificityDepthAnalysis>Evaluate how detailed their technical descriptions are for this entry.</SpecificityDepthAnalysis>
+                        <FeasibilityNotes>Comment on whether the claimed achievements seem realistic for this entry.</FeasibilityNotes>
+                    </Summary>
+                    <KeyObservationsAndEvidence>
+                        <SpecificCredibleEvidences>List concrete examples of technical skills from this entry.</SpecificCredibleEvidences>
+                        <QuestionableOrWeakPoints>List unsubstantiated claims from this entry.</QuestionableOrWeakPoints>
+                        <TechnologiesMentionedEffectively>List technologies mentioned with good context in this entry.</TechnologiesMentionedEffectively>
+                    </KeyObservationsAndEvidence>
+                </Entry>
+                ...Other entries can be added here following the same structure...
+            </EvidenceEntries>
+        </TechnicalExperienceAndSkills>
+        <CandidateFitAndNotes>
+            <GeneralNotes source_section="Overall Resume / Throughout">
+            General notes here - e.g., The resume is consistently formatted and easy to read... Candidate has a unique blend of X and Y experience... Noted a minor typo in the contact section (if relevant and handled neutrally).
+            </GeneralNotes>
+        </CandidateFitAndNotes>
+    </Details>
+</SimpleResume>

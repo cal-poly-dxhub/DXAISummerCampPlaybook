@@ -1,0 +1,7 @@
+boto3
+botocore
+fitz
+dotenv
+types-boto3
+youtube-transcript-api
+pdf2image

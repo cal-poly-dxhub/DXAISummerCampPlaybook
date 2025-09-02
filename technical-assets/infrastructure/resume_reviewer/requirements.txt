@@ -1,0 +1,5 @@
+streamlit==1.45.0
+boto3==1.26.137
+PyPDF2==3.0.1
+pandas==2.0.1
+python-dotenv==1.0.0

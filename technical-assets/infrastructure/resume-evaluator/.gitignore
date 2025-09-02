@@ -1,0 +1,16 @@
+# Bedrock output files
+*.out
+*.csv
+.venv
+.env
+unset
+resumes/
+evaluations/
+output/
+__pycache__
+
+rows
+supplemental
+unmatched
+tableMap.json
+participants.csv
