@@ -1,0 +1,8 @@
+{
+  "title": "DxHub CCC Summer Hackathon Quiz",
+  "description": "Welcome! This short quiz is mainly on Amazon Bedrock concepts. There are also general questions on topics relevant to our summer hackathon. Enter your information below to get started.",
+  "timeLimit": 0,
+  "shuffleQuestions": false,
+  "showProgressBar": true,
+  "apiBaseUrl": "https://9ecb1tovab.execute-api.us-west-2.amazonaws.com"
+}

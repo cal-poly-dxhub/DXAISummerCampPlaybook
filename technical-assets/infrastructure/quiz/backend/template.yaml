@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Quiz submission backend - DynamoDB + Lambda + API Gateway
+
+Globals:
+  Function:
+    Timeout: 10
+    Runtime: python3.13
+    MemorySize: 128
+
+Resources:
+  QuizSubmissionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: quiz-submissions
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: email
+          AttributeType: S
+      KeySchema:
+        - AttributeName: email
+          KeyType: HASH
+
+  QuizFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handler.lambda_handler
+      CodeUri: src/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref QuizSubmissionsTable
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref QuizSubmissionsTable
+      Events:
+        GetSubmission:
+          Type: HttpApi
+          Properties:
+            Path: /submission/{email}
+            Method: GET
+            ApiId: !Ref QuizHttpApi
+        PostSubmission:
+          Type: HttpApi
+          Properties:
+            Path: /submission
+            Method: POST
+            ApiId: !Ref QuizHttpApi
+
+  QuizHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins:
+          - "*"
+        AllowMethods:
+          - GET
+          - POST
+          - OPTIONS
+        AllowHeaders:
+          - Content-Type
+
+Outputs:
+  ApiUrl:
+    Description: API Gateway endpoint URL
+    Value: !Sub "https://${QuizHttpApi}.execute-api.${AWS::Region}.amazonaws.com"

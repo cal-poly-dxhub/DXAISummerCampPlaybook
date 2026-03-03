@@ -1,0 +1,178 @@
+[
+  {
+    "id": 1,
+    "type": "mcq",
+    "question": "What is a core function of Amazon Bedrock?",
+    "options": [
+      "Amazon Bedrock provides access to foundation models from leading AI companies through a unified API.",
+      "Amazon Bedrock creates custom machine learning models from scratch without requiring training data.",
+      "Amazon Bedrock automatically generates documentation for all AWS services in your account.",
+      "Amazon Bedrock translates legacy code into modern programming languages for application modernization."
+    ],
+    "correctAnswer": "Amazon Bedrock provides access to foundation models from leading AI companies through a unified API.",
+    "explanations": {
+      "Amazon Bedrock creates custom machine learning models from scratch without requiring training data.": "Bedrock doesn't create models from scratch — it provides access to pre-built foundation models from providers like Anthropic, Meta, and Amazon. You can fine-tune them with your data, but training data is still needed for customization.",
+      "Amazon Bedrock automatically generates documentation for all AWS services in your account.": "Bedrock is a generative AI service, not a documentation tool. While you could use a foundation model to help write docs, that's not what Bedrock itself does as a core function.",
+      "Amazon Bedrock translates legacy code into modern programming languages for application modernization.": "Code translation is not a core function of Bedrock. While a foundation model accessed through Bedrock could assist with code tasks, Bedrock's purpose is to provide unified API access to foundation models, not specifically code modernization."
+    }
+  },
+  {
+    "id": 2,
+    "type": "mcq",
+    "question": "What is a technical concept of Amazon Bedrock?",
+    "options": [
+      "Prompt engineering involves crafting effective instructions for foundation models to produce desired outputs.",
+      "Network topology mapping is used to establish connection paths between foundation models.",
+      "Quantum computing principles are applied when selecting appropriate foundation models.",
+      "Binary translation is necessary to convert user inputs into a format foundation models can process."
+    ],
+    "correctAnswer": "Prompt engineering involves crafting effective instructions for foundation models to produce desired outputs.",
+    "explanations": {
+      "Network topology mapping is used to establish connection paths between foundation models.": "Foundation models are accessed through APIs, not through network topology mapping. You don't need to establish physical or logical connection paths between models — you simply call them through the Bedrock API.",
+      "Quantum computing principles are applied when selecting appropriate foundation models.": "Quantum computing has nothing to do with how Bedrock works or how foundation models are selected. Model selection is based on your use case, cost, and performance needs — not quantum principles.",
+      "Binary translation is necessary to convert user inputs into a format foundation models can process.": "User inputs are sent as text through the API. Foundation models use tokenization (breaking text into tokens), not binary translation, to process inputs. The API handles this automatically."
+    }
+  },
+  {
+    "id": 3,
+    "type": "mcq",
+    "question": "What is a key feature of Amazon Bedrock?",
+    "options": [
+      "Amazon Bedrock provides physical robot control systems for automated warehouse operations.",
+      "Amazon Bedrock has the ability to customize the models by incorporating updated or proprietary data.",
+      "Amazon Bedrock creates custom hardware configurations for running AI models.",
+      "Amazon Bedrock can generate real-time weather predictions using satellite data."
+    ],
+    "correctAnswer": "Amazon Bedrock has the ability to customize the models by incorporating updated or proprietary data.",
+    "explanations": {
+      "Amazon Bedrock provides physical robot control systems for automated warehouse operations.": "Bedrock is a cloud-based AI service for working with foundation models — it has no connection to physical robotics or warehouse automation. AWS has other services like IoT and RoboMaker for those use cases.",
+      "Amazon Bedrock creates custom hardware configurations for running AI models.": "Bedrock is a fully managed service, meaning AWS handles all the underlying infrastructure. You don't configure any hardware — you just call the API and Bedrock runs the models for you.",
+      "Amazon Bedrock can generate real-time weather predictions using satellite data.": "Bedrock provides general-purpose foundation models, not specialized weather prediction systems. While you could use a model to analyze data, Bedrock doesn't ingest satellite data or generate weather forecasts as a feature."
+    }
+  },
+  {
+    "id": 4,
+    "type": "mcq",
+    "question": "What is a practical business application of Amazon Bedrock?",
+    "options": [
+      "Organizations use Amazon Bedrock to manage physical inventory systems in warehouses.",
+      "Organizations use Amazon Bedrock for content generation and technical documentation at scale.",
+      "Organizations use Amazon Bedrock to control autonomous delivery drones in real time.",
+      "Organizations use Amazon Bedrock to process financial transactions and banking operations."
+    ],
+    "correctAnswer": "Organizations use Amazon Bedrock for content generation and technical documentation at scale.",
+    "explanations": {
+      "Organizations use Amazon Bedrock to manage physical inventory systems in warehouses.": "Bedrock is a generative AI service, not an inventory management system. Physical inventory tracking uses services like IoT, databases, and supply chain software — not foundation models.",
+      "Organizations use Amazon Bedrock to control autonomous delivery drones in real time.": "Drone control requires real-time embedded systems and robotics software, not generative AI foundation models. Bedrock is designed for text, image, and code generation tasks, not vehicle control.",
+      "Organizations use Amazon Bedrock to process financial transactions and banking operations.": "Financial transaction processing requires specialized banking infrastructure with strict regulatory compliance. Bedrock is a generative AI service — it could help generate reports or summaries, but it doesn't process actual financial transactions."
+    }
+  },
+  {
+    "id": 5,
+    "type": "mcq",
+    "question": "What is an element of Amazon Bedrock service architecture?",
+    "options": [
+      "Amazon Quantum Ledger Database (Amazon QLDB) provides immutable storage for all foundation model interactions to ensure compliance with regulatory requirements.",
+      "AWS Lambda executes the code that orchestrates interactions between Amazon Bedrock and other services.",
+      "AWS Outposts extends Amazon Bedrock capabilities to on-premises data centers through specialized hardware appliances.",
+      "AWS Organizations manages account orchestration for foundation model deployments."
+    ],
+    "correctAnswer": "AWS Lambda executes the code that orchestrates interactions between Amazon Bedrock and other services.",
+    "explanations": {
+      "Amazon Quantum Ledger Database (Amazon QLDB) provides immutable storage for all foundation model interactions to ensure compliance with regulatory requirements.": "QLDB is a ledger database for tracking verifiable transaction history — it's not part of the Bedrock architecture. Bedrock interactions are not stored in a ledger database by default.",
+      "AWS Outposts extends Amazon Bedrock capabilities to on-premises data centers through specialized hardware appliances.": "Bedrock is a cloud-only managed service and is not available on AWS Outposts. You access it through the AWS cloud API — there's no on-premises hardware appliance for it.",
+      "AWS Organizations manages account orchestration for foundation model deployments.": "AWS Organizations is for managing multiple AWS accounts and policies — it doesn't orchestrate foundation model deployments. Lambda is the service that runs code to coordinate between Bedrock and other AWS services."
+    }
+  },
+  {
+    "id": 6,
+    "type": "mcq",
+    "question": "Which service integrates with Amazon Bedrock?",
+    "options": [
+      "AWS Ground Station provides satellite communication capabilities for Amazon Bedrock to access global imagery datasets.",
+      "Amazon Parallel Computing Service accelerates foundation model inference through quantum processing units.",
+      "Amazon Kendra enhances the Retrieval Augmented Generation (RAG) capabilities of Amazon Bedrock with enterprise search functionality across multiple repositories.",
+      "AWS Managed Blockchain validates all Amazon Bedrock transactions using distributed ledger technology."
+    ],
+    "correctAnswer": "Amazon Kendra enhances the Retrieval Augmented Generation (RAG) capabilities of Amazon Bedrock with enterprise search functionality across multiple repositories.",
+    "explanations": {
+      "AWS Ground Station provides satellite communication capabilities for Amazon Bedrock to access global imagery datasets.": "AWS Ground Station is for communicating with satellites in orbit — it has no integration with Bedrock. Foundation models don't need satellite data feeds to function.",
+      "Amazon Parallel Computing Service accelerates foundation model inference through quantum processing units.": "This service doesn't exist in the way described. Bedrock runs on standard cloud compute infrastructure (GPUs), not quantum processing units. AWS manages the inference infrastructure behind the scenes.",
+      "AWS Managed Blockchain validates all Amazon Bedrock transactions using distributed ledger technology.": "Managed Blockchain is for building blockchain networks — it has no connection to Bedrock. AI model API calls don't need blockchain validation."
+    }
+  },
+  {
+    "id": 7,
+    "type": "mcq",
+    "question": "A school wants to build an educational chatbot where teachers upload assignment and syllabus files, and the chatbot answers student questions based on those documents. Which services should be used for storing the files and implementing Retrieval Augmented Generation (RAG)?",
+    "options": [
+      "Amazon S3 for storage and Amazon Bedrock Knowledge Base for RAG",
+      "Amazon EC2 for storage and Amazon EventBridge for RAG",
+      "Amazon SageMaker for storage and Amazon Bedrock Knowledge Base for RAG",
+      "Amazon EC2 for storage and Amazon OpenSearch for RAG"
+    ],
+    "correctAnswer": "Amazon S3 for storage and Amazon Bedrock Knowledge Base for RAG",
+    "explanations": {
+      "Amazon EC2 for storage and Amazon EventBridge for RAG": "EC2 is a compute service (virtual servers), not designed for scalable file storage — that's what S3 is for. EventBridge is an event routing service for connecting applications, not a RAG solution. It doesn't search or retrieve document content.",
+      "Amazon SageMaker for storage and Amazon Bedrock Knowledge Base for RAG": "SageMaker is a machine learning platform for training and deploying custom models — it's not a file storage service. While the RAG part (Bedrock Knowledge Base) is correct, S3 is the right choice for storing the uploaded documents.",
+      "Amazon EC2 for storage and Amazon OpenSearch for RAG": "EC2 isn't designed for file storage. While OpenSearch can be used for search, Bedrock Knowledge Base is purpose-built for RAG with foundation models and handles the document chunking, embedding, and retrieval automatically."
+    }
+  },
+  {
+    "id": 8,
+    "type": "mcq",
+    "question": "What is the primary benefit of using version control (e.g., Git) in a team project?",
+    "options": [
+      "It makes code run faster",
+      "It allows multiple people to collaborate on code and track changes over time",
+      "It automatically fixes bugs in your code",
+      "It replaces the need for a code editor"
+    ],
+    "correctAnswer": "It allows multiple people to collaborate on code and track changes over time",
+    "explanations": {
+      "It makes code run faster": "Version control like Git tracks and manages changes to your code — it doesn't affect how fast the code runs. Performance depends on your code quality, algorithms, and infrastructure, not your version control system.",
+      "It automatically fixes bugs in your code": "Git doesn't analyze or fix your code. It tracks changes so you can see what was modified, revert to previous versions, and collaborate — but finding and fixing bugs is still up to the developers.",
+      "It replaces the need for a code editor": "Git is a version control system, not a code editor. You still need an editor (like VS Code) to write code. Git works alongside your editor to track and manage the changes you make."
+    }
+  },
+  {
+    "id": 9,
+    "type": "mcq",
+    "question": "Which of the following is a key best practice when working in a hackathon team?",
+    "options": [
+      "Avoid communicating with team members to prevent distractions from coding",
+      "Start coding immediately without planning or discussing the project scope",
+      "Clearly define roles and responsibilities, communicate regularly, and break the project into manageable tasks",
+      "Have one person make all technical decisions for the entire team"
+    ],
+    "correctAnswer": "Clearly define roles and responsibilities, communicate regularly, and break the project into manageable tasks",
+    "explanations": {
+      "Avoid communicating with team members to prevent distractions from coding": "Communication is essential in a team project, especially during a hackathon with tight deadlines. Without regular communication, team members end up duplicating work, building incompatible features, or heading in different directions.",
+      "Start coding immediately without planning or discussing the project scope": "Jumping straight into code without a plan wastes time. Even 15-20 minutes of planning — agreeing on the problem, splitting up work, and deciding on architecture — saves hours of rework during a hackathon.",
+      "Have one person make all technical decisions for the entire team": "This creates a bottleneck and excludes valuable perspectives from other team members. Effective hackathon teams distribute decision-making, leverage each member's strengths, and make quick collaborative decisions."
+    }
+  },
+  {
+    "id": 10,
+    "type": "mcq",
+    "question": "When building an AI-powered prototype during a hackathon, what is the most practical first step?",
+    "options": [
+      "Train a custom large language model from scratch on your own dataset",
+      "Use a pre-trained foundation model through an API and focus on building a useful application around it",
+      "Spend the majority of the hackathon collecting and labeling training data",
+      "Write your own neural network framework before starting the project"
+    ],
+    "correctAnswer": "Use a pre-trained foundation model through an API and focus on building a useful application around it",
+    "explanations": {
+      "Train a custom large language model from scratch on your own dataset": "Training a large language model from scratch takes weeks or months of compute time and massive datasets — it's completely impractical during a hackathon. Pre-trained models through APIs like Bedrock let you build immediately.",
+      "Spend the majority of the hackathon collecting and labeling training data": "Data collection and labeling is a lengthy process that doesn't make sense during a time-limited hackathon. By using a pre-trained foundation model, you skip this entirely and focus your time on building the actual application.",
+      "Write your own neural network framework before starting the project": "Building a neural network framework from scratch is a massive engineering effort. Existing tools (PyTorch, TensorFlow) and managed services (Bedrock) already handle this. In a hackathon, use existing tools to maximize the time you spend on your actual project idea."
+    }
+  },
+  {
+    "id": 11,
+    "type": "frq",
+    "question": "Why are you interested in participating in the DxHub CCC Summer Hackathon? What do you hope to learn or build?",
+    "maxLength": 500
+  }
+]

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DxHub CCC Summer Hackathon Quiz</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <header class="header">
+    <h1 id="header-title">DxHub CCC Summer Hackathon Quiz</h1>
+    <div class="subtitle">Cal Poly Digital Transformation Hub</div>
+  </header>
+
+  <main class="container">
+
+    <!-- Screen 1: Welcome / Info -->
+    <div id="welcome-screen" class="screen active">
+      <div class="card">
+        <h2 id="quiz-title">Loading…</h2>
+        <p id="quiz-description"></p>
+        <p class="course-link">This quiz is based on the <a href="https://skillbuilder.aws/learn/63KTRM86DQ/amazon-bedrock-getting-started/SC2Y3HMAUE" target="_blank" rel="noopener noreferrer">Amazon Bedrock Getting Started</a> course. Review it before starting if you need a refresher.</p>
+        <form id="info-form">
+          <div class="form-group">
+            <label for="name">Full Name</label>
+            <input type="text" id="name" name="name" required placeholder="Jane Doe">
+          </div>
+          <div class="form-group">
+            <label for="email">Email Address - Use Campus Email Only</label>
+            <input type="email" id="email" name="email" required placeholder="jdoe@calpoly.edu" pattern=".+\.edu$">
+            <span class="email-error" id="email-error" style="display:none; color:#c0392b; font-size:0.9rem;">Please enter a valid .edu email address.</span>
+          </div>
+          <div id="returning-user-banner" class="returning-user-banner" style="display:none;">
+            <strong>Welcome back!</strong>
+            <p id="returning-user-info"></p>
+            <p>Your free-response answers will be pre-filled. Multiple choice questions are reset.</p>
+          </div>
+          <div class="text-center mt-2">
+            <button type="submit" class="btn btn-primary" id="start-btn">Start Quiz</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Screen 2: Quiz -->
+    <div id="quiz-screen" class="screen">
+      <div id="timer-display" class="timer" style="display:none;"></div>
+      <div id="progress-wrapper">
+        <div class="progress-text" id="progress-text"></div>
+        <div class="progress-container">
+          <div class="progress-bar" id="progress-bar"></div>
+        </div>
+      </div>
+      <div id="questions-container"></div>
+      <div class="text-center mt-3">
+        <button class="btn btn-primary" id="submit-btn">Submit Quiz</button>
+      </div>
+    </div>
+
+    <!-- Screen 3: Submission Confirmation -->
+    <div id="submission-screen" class="screen">
+      <div class="card text-center">
+        <div class="submission-icon">&#10003;</div>
+        <h2>Quiz Submitted!</h2>
+        <p>Thank you for completing the quiz. Your responses have been recorded.</p>
+      </div>
+      <div id="best-score-info" style="display:none;"></div>
+      <div class="submission-summary" id="answer-summary"></div>
+    </div>
+
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
