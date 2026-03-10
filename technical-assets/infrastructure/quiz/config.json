@@ -1,8 +1,21 @@
 {
-  "title": "DxHub CCC Summer Hackathon Quiz",
-  "description": "Welcome! This short quiz is mainly on Amazon Bedrock concepts. There are also general questions on topics relevant to our summer hackathon. Enter your information below to get started.",
+  "defaultOrg": "csu",
   "timeLimit": 0,
   "shuffleQuestions": false,
   "showProgressBar": true,
-  "apiBaseUrl": "https://9ecb1tovab.execute-api.us-west-2.amazonaws.com"
+  "apiBaseUrl": "https://9ecb1tovab.execute-api.us-west-2.amazonaws.com",
+  "orgs": {
+    "csu": {
+      "title": "DxHub CSU Summer Hackathon",
+      "description": "Welcome! This short quiz is mainly on Amazon Bedrock concepts. There are also general questions on topics relevant to our summer hackathon. Enter your information below to get started.",
+      "logo": "poly.png",
+      "emailLabel": "Email Address - Use Campus .edu Email Only"
+    },
+    "ccc": {
+      "title": "DxHub CCC Summer Hackathon",
+      "description": "Welcome! This short quiz is mainly on Amazon Bedrock concepts. There are also general questions on topics relevant to our summer hackathon. Enter your information below to get started.",
+      "logo": "ccc.png",
+      "emailLabel": "Email Address - Use Campus .edu Email Only"
+    }
+  }
 }

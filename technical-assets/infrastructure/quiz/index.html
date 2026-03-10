@@ -8,12 +8,17 @@
 </head>
 <body>
 
-  <header class="header">
-    <h1 id="header-title">DxHub CCC Summer Hackathon Quiz</h1>
-    <div class="subtitle">Cal Poly Digital Transformation Hub</div>
-  </header>
-
   <main class="container">
+
+    <div class="logos">
+      <img id="org-logo" src="logos/poly.png" alt="Organization">
+      <img src="logos/dxhub.png" alt="DxHub">
+    </div>
+
+    <header class="header">
+      <h1 id="header-title">DxHub CCC Summer Hackathon Quiz</h1>
+      <div class="subtitle">Cal Poly Digital Transformation Hub</div>
+    </header>
 
     <!-- Screen 1: Welcome / Info -->
     <div id="welcome-screen" class="screen active">
@@ -34,39 +39,88 @@
           <div id="returning-user-banner" class="returning-user-banner" style="display:none;">
             <strong>Welcome back!</strong>
             <p id="returning-user-info"></p>
-            <p>Your free-response answers will be pre-filled. Multiple choice questions are reset.</p>
           </div>
           <div class="text-center mt-2">
-            <button type="submit" class="btn btn-primary" id="start-btn">Start Quiz</button>
+            <button type="submit" class="btn btn-primary" id="start-btn">Get Started</button>
           </div>
         </form>
       </div>
     </div>
 
-    <!-- Screen 2: Quiz -->
-    <div id="quiz-screen" class="screen">
-      <div id="timer-display" class="timer" style="display:none;"></div>
-      <div id="progress-wrapper">
-        <div class="progress-text" id="progress-text"></div>
-        <div class="progress-container">
-          <div class="progress-bar" id="progress-bar"></div>
+    <!-- Screen 2: Tab Container -->
+    <div id="tab-container" class="screen">
+
+      <!-- Tab Navigation Bar -->
+      <div class="tab-nav">
+        <button class="tab-btn active" data-tab="quiz">
+          <span class="tab-step">1</span>
+          <span class="tab-label">Quiz</span>
+        </button>
+        <button class="tab-btn" data-tab="responses">
+          <span class="tab-step">2</span>
+          <span class="tab-label">Free Response</span>
+        </button>
+      </div>
+
+      <!-- Tab 1: Quiz (MCQ) -->
+      <div id="tab-panel-quiz" class="tab-panel active">
+
+        <!-- Landing state: before quiz starts -->
+        <div id="quiz-landing" class="card text-center">
+          <h2>Multiple Choice Quiz</h2>
+          <p id="quiz-landing-info">Test your knowledge on Amazon Bedrock and hackathon concepts.</p>
+          <div id="quiz-score-display" style="display:none;">
+            <div class="score-banner" id="landing-score-banner"></div>
+          </div>
+          <div class="mt-2">
+            <button class="btn btn-primary" id="start-quiz-btn">Start Quiz</button>
+          </div>
+        </div>
+
+        <!-- Active quiz state: taking the quiz -->
+        <div id="quiz-active" style="display:none;">
+          <div id="timer-display" class="timer" style="display:none;"></div>
+          <div id="progress-wrapper">
+            <div class="progress-text" id="progress-text"></div>
+            <div class="progress-container">
+              <div class="progress-bar" id="progress-bar"></div>
+            </div>
+          </div>
+          <div id="mcq-questions-container"></div>
+          <div class="text-center mt-3">
+            <button class="btn btn-primary" id="submit-quiz-btn">Submit Quiz</button>
+          </div>
+        </div>
+
+        <!-- Result state: after quiz submission -->
+        <div id="quiz-result" style="display:none;">
+          <div class="card text-center">
+            <div class="submission-icon">&#10003;</div>
+            <h2>Quiz Submitted!</h2>
+          </div>
+          <div class="score-banner" id="result-score-banner"></div>
+          <div class="text-center mt-2 result-actions">
+            <button class="btn btn-gold" id="retry-quiz-btn">Retry Quiz</button>
+            <button class="btn btn-primary" id="continue-to-frq-btn">Continue</button>
+          </div>
+          <div class="submission-summary" id="mcq-answer-summary"></div>
+        </div>
+
+      </div>
+
+      <!-- Tab 2: Free Response -->
+      <div id="tab-panel-responses" class="tab-panel">
+        <div class="card">
+          <h2>Free Response &amp; Matching Questions</h2>
+          <p>Your answers are saved independently. You can edit and re-save at any time.</p>
+        </div>
+        <div id="frq-questions-container"></div>
+        <div id="responses-save-status" class="save-status" style="display:none;"></div>
+        <div class="text-center mt-3">
+          <button class="btn btn-primary" id="save-responses-btn">Save Responses</button>
         </div>
       </div>
-      <div id="questions-container"></div>
-      <div class="text-center mt-3">
-        <button class="btn btn-primary" id="submit-btn">Submit Quiz</button>
-      </div>
-    </div>
 
-    <!-- Screen 3: Submission Confirmation -->
-    <div id="submission-screen" class="screen">
-      <div class="card text-center">
-        <div class="submission-icon">&#10003;</div>
-        <h2>Quiz Submitted!</h2>
-        <p>Thank you for completing the quiz. Your responses have been recorded.</p>
-      </div>
-      <div id="best-score-info" style="display:none;"></div>
-      <div class="submission-summary" id="answer-summary"></div>
     </div>
 
   </main>

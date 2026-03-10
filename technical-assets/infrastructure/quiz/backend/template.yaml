@@ -39,10 +39,16 @@ Resources:
             Path: /submission/{email}
             Method: GET
             ApiId: !Ref QuizHttpApi
-        PostSubmission:
+        PostQuiz:
           Type: HttpApi
           Properties:
-            Path: /submission
+            Path: /submission/quiz
+            Method: POST
+            ApiId: !Ref QuizHttpApi
+        PostResponses:
+          Type: HttpApi
+          Properties:
+            Path: /submission/responses
             Method: POST
             ApiId: !Ref QuizHttpApi
 

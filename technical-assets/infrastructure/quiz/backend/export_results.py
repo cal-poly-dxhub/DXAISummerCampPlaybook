@@ -41,17 +41,17 @@ def main():
     items = [decimal_to_native(item) for item in items]
     items.sort(key=lambda x: x.get("email", ""))
 
-    # Collect all FRQ questions for column headers
-    frq_questions = []
+    # Collect all section 2 questions for column headers
+    s2_questions = []
     for item in items:
-        for ans in item.get("answers", []):
-            if ans.get("type") == "frq" and ans["question"] not in frq_questions:
-                frq_questions.append(ans["question"])
+        for ans in item.get("section2Answers", []):
+            if ans.get("question") and ans["question"] not in s2_questions:
+                s2_questions.append(ans["question"])
 
     # Build CSV
-    headers = ["email", "name", "attemptCount", "mcqScore", "mcqTotal", "submittedAt"]
-    for q in frq_questions:
-        headers.append(f"FRQ: {q}")
+    headers = ["email", "name", "quizTaken", "mcqAttempts", "mcqScore", "mcqTotal", "submittedAt"]
+    for q in s2_questions:
+        headers.append(f"Response: {q}")
 
     output = OUTPUT_FILE if len(sys.argv) < 2 else sys.argv[1]
 
@@ -63,14 +63,15 @@ def main():
             row = [
                 item.get("email", ""),
                 item.get("name", ""),
-                item.get("attemptCount", 0),
+                item.get("quizTaken", False),
+                item.get("mcqAttempts", 0),
                 item.get("mcqScore", 0),
                 item.get("mcqTotal", 0),
                 item.get("submittedAt", ""),
             ]
 
-            answers = {a["question"]: a.get("answer", "") for a in item.get("answers", []) if a.get("type") == "frq"}
-            for q in frq_questions:
+            answers = {a["question"]: a.get("answer", "") for a in item.get("section2Answers", [])}
+            for q in s2_questions:
                 row.append(answers.get(q, ""))
 
             writer.writerow(row)
