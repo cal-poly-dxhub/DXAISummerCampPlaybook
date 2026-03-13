@@ -1001,6 +1001,20 @@
 
   emailInput.addEventListener("input", function () {
     validateEmail();
+    // If user changes email away from the restored session email,
+    // clear auth state and re-show CAPTCHA so they go through OTP again.
+    var storedEmail = localStorage.getItem("quiz_auth_email");
+    if (storedEmail && emailInput.value.trim().toLowerCase() !== storedEmail) {
+      _clearTokens();
+      captchaSolved = false;
+      wafToken = null;
+      returningBanner.style.display = "none";
+      startBtn.textContent = "Get Started";
+      if (wafScriptsLoaded) {
+        captchaContainer.style.display = "";
+        renderCaptchaWidget();
+      }
+    }
   });
 
   otpCodeInput.addEventListener("input", function () {
