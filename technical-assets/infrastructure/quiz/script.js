@@ -1,66 +1,216 @@
 (function () {
   "use strict";
 
-  let config = {};
-  let questions = [];
-  let section1Questions = [];
-  let section2Questions = [];
-  let timerInterval = null;
-  let secondsRemaining = 0;
+  var config = {};
+  var questions = [];
+  var section1Questions = [];
+  var section2Questions = [];
+  var timerInterval = null;
+  var secondsRemaining = 0;
 
   // Returning-user state
-  let previousSubmission = null;
-  let isRetry = false;
-  let currentTab = "quiz";
+  var previousSubmission = null;
+  var isRetry = false;
+  var currentTab = "quiz";
+  var orgKey = "csu";
+  var requireEdu = true;
+
+  // Auth state
+  var authTokens = null; // { idToken, accessToken, refreshToken }
+  var captchaSolved = false;
+  var wafScriptsLoaded = false;
+  var wafToken = null;
+  var resendCooldownInterval = null;
 
   // DOM elements
-  const welcomeScreen = document.getElementById("welcome-screen");
-  const tabContainer = document.getElementById("tab-container");
-  const infoForm = document.getElementById("info-form");
-  const startBtn = document.getElementById("start-btn");
-  const nameInput = document.getElementById("name");
-  const emailInput = document.getElementById("email");
-  const emailError = document.getElementById("email-error");
-  const returningBanner = document.getElementById("returning-user-banner");
-  const returningInfo = document.getElementById("returning-user-info");
+  var welcomeScreen = document.getElementById("welcome-screen");
+  var otpScreen = document.getElementById("otp-screen");
+  var tabContainer = document.getElementById("tab-container");
+  var infoForm = document.getElementById("info-form");
+  var startBtn = document.getElementById("start-btn");
+  var nameInput = document.getElementById("name");
+  var emailInput = document.getElementById("email");
+  var emailError = document.getElementById("email-error");
+  var returningBanner = document.getElementById("returning-user-banner");
+  var returningInfo = document.getElementById("returning-user-info");
+  var captchaContainer = document.getElementById("captcha-container");
+  var captchaError = document.getElementById("captcha-error");
+
+  // OTP elements
+  var otpCodeInput = document.getElementById("otp-code");
+  var otpEmailDisplay = document.getElementById("otp-email-display");
+  var otpError = document.getElementById("otp-error");
+  var verifyOtpBtn = document.getElementById("verify-otp-btn");
+  var resendOtpBtn = document.getElementById("resend-otp-btn");
+  var resendTimer = document.getElementById("resend-timer");
+  var otpBackBtn = document.getElementById("otp-back-btn");
 
   // Tab elements
-  const tabBtns = document.querySelectorAll(".tab-btn");
-  const tabPanelQuiz = document.getElementById("tab-panel-quiz");
-  const tabPanelResponses = document.getElementById("tab-panel-responses");
+  var tabBtns = document.querySelectorAll(".tab-btn");
+  var tabPanelQuiz = document.getElementById("tab-panel-quiz");
+  var tabPanelResponses = document.getElementById("tab-panel-responses");
+  var tabPanelFinish = document.getElementById("tab-panel-finish");
 
   // Quiz tab elements
-  const quizLanding = document.getElementById("quiz-landing");
-  const quizActive = document.getElementById("quiz-active");
-  const quizResult = document.getElementById("quiz-result");
-  const startQuizBtn = document.getElementById("start-quiz-btn");
-  const submitQuizBtn = document.getElementById("submit-quiz-btn");
-  const retryQuizBtn = document.getElementById("retry-quiz-btn");
-  const continueToFrqBtn = document.getElementById("continue-to-frq-btn");
-  const mcqQuestionsContainer = document.getElementById("mcq-questions-container");
-  const mcqAnswerSummary = document.getElementById("mcq-answer-summary");
-  const landingScoreBanner = document.getElementById("landing-score-banner");
-  const resultScoreBanner = document.getElementById("result-score-banner");
-  const quizScoreDisplay = document.getElementById("quiz-score-display");
-  const progressBar = document.getElementById("progress-bar");
-  const progressText = document.getElementById("progress-text");
-  const progressWrapper = document.getElementById("progress-wrapper");
-  const timerDisplay = document.getElementById("timer-display");
+  var quizLanding = document.getElementById("quiz-landing");
+  var quizActive = document.getElementById("quiz-active");
+  var quizResult = document.getElementById("quiz-result");
+  var startQuizBtn = document.getElementById("start-quiz-btn");
+  var submitQuizBtn = document.getElementById("submit-quiz-btn");
+  var retryQuizBtn = document.getElementById("retry-quiz-btn");
+  var continueToFrqBtn = document.getElementById("continue-to-frq-btn");
+  var mcqQuestionsContainer = document.getElementById("mcq-questions-container");
+  var mcqAnswerSummary = document.getElementById("mcq-answer-summary");
+  var landingScoreBanner = document.getElementById("landing-score-banner");
+  var resultScoreBanner = document.getElementById("result-score-banner");
+  var quizScoreDisplay = document.getElementById("quiz-score-display");
+  var progressBar = document.getElementById("progress-bar");
+  var progressText = document.getElementById("progress-text");
+  var progressWrapper = document.getElementById("progress-wrapper");
+  var timerDisplay = document.getElementById("timer-display");
 
   // Responses tab elements
-  const saveResponsesBtn = document.getElementById("save-responses-btn");
-  const frqQuestionsContainer = document.getElementById("frq-questions-container");
-  const responsesSaveStatus = document.getElementById("responses-save-status");
+  var saveResponsesBtn = document.getElementById("save-responses-btn");
+  var frqQuestionsContainer = document.getElementById("frq-questions-container");
+  var responsesSaveStatus = document.getElementById("responses-save-status");
 
-  // --- Init ---
+  // =========================================================================
+  // WAF CAPTCHA
+  // =========================================================================
+
+  function loadScript(url) {
+    return new Promise(function (resolve, reject) {
+      var s = document.createElement("script");
+      s.src = url;
+      s.onload = resolve;
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
+
+  async function initWafCaptcha() {
+    if (!config.wafJsUrl || !config.wafCaptchaApiKey) {
+      captchaContainer.style.display = "none";
+      return;
+    }
+
+    try {
+      if (!wafScriptsLoaded) {
+        await loadScript(config.wafJsUrl + "/jsapi.js");
+        wafScriptsLoaded = true;
+      }
+      renderCaptchaWidget();
+    } catch (err) {
+      console.warn("WAF CAPTCHA scripts failed to load:", err);
+      captchaContainer.style.display = "none";
+    }
+  }
+
+  function renderCaptchaWidget() {
+    captchaContainer.innerHTML = "";
+    captchaSolved = false;
+    wafToken = null;
+    window.AwsWafCaptcha.renderCaptcha(captchaContainer, {
+      apiKey: config.wafCaptchaApiKey,
+      skipTitle: true,
+      onSuccess: function (token) {
+        wafToken = token;
+        captchaSolved = true;
+        hideCaptchaError();
+      },
+      onError: function (err) {
+        console.error("CAPTCHA error:", err);
+        captchaSolved = false;
+      },
+    });
+  }
+
+  // Wrapper: adds the WAF token as a header for WAF-protected routes.
+  // AwsWafIntegration.fetch() doesn't work cross-origin (API Gateway is a
+  // different domain than CloudFront), so we pass the token explicitly.
+  function wafFetch(url, options) {
+    options = options || {};
+    options.headers = options.headers || {};
+    if (wafToken) {
+      options.headers["x-aws-waf-token"] = wafToken;
+    }
+    return fetch(url, options);
+  }
+
+  // =========================================================================
+  // AUTH — tokens
+  // =========================================================================
+
+  function _storeTokens(email, tokens) {
+    authTokens = tokens;
+    localStorage.setItem("quiz_auth_email", email);
+    localStorage.setItem("quiz_refresh_token", tokens.refreshToken);
+  }
+
+  function _clearTokens() {
+    authTokens = null;
+    localStorage.removeItem("quiz_auth_email");
+    localStorage.removeItem("quiz_refresh_token");
+  }
+
+  async function tryRefreshSession() {
+    var refreshToken = localStorage.getItem("quiz_refresh_token");
+    if (!refreshToken || !config.apiBaseUrl) return false;
+
+    try {
+      var res = await fetch(config.apiBaseUrl + "/auth/refresh", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refreshToken: refreshToken }),
+      });
+      if (!res.ok) { _clearTokens(); return false; }
+
+      var data = await res.json();
+      if (!data.success) { _clearTokens(); return false; }
+
+      authTokens = {
+        idToken: data.idToken,
+        accessToken: data.accessToken,
+        refreshToken: refreshToken,
+      };
+      return true;
+    } catch (err) {
+      _clearTokens();
+      return false;
+    }
+  }
+
+  async function authFetch(url, options) {
+    if (!authTokens) throw new Error("Not authenticated");
+
+    options = options || {};
+    options.headers = options.headers || {};
+    options.headers["Authorization"] = "Bearer " + authTokens.idToken;
+
+    var res = await fetch(url, options);
+
+    if (res.status === 401) {
+      var refreshed = await tryRefreshSession();
+      if (refreshed) {
+        options.headers["Authorization"] = "Bearer " + authTokens.idToken;
+        res = await fetch(url, options);
+      }
+    }
+    return res;
+  }
+
+  // =========================================================================
+  // INIT
+  // =========================================================================
+
   async function init() {
     try {
-      var [configRes, questionsRes] = await Promise.all([
+      var results = await Promise.all([
         fetch("config.json"),
         fetch("questions.json"),
       ]);
-      config = await configRes.json();
-      questions = await questionsRes.json();
+      config = await results[0].json();
+      questions = await results[1].json();
     } catch (err) {
       console.error("Failed to load config or questions:", err);
       document.getElementById("quiz-title").textContent = "Error loading quiz";
@@ -70,23 +220,24 @@
       return;
     }
 
-    // Determine org from ?org= query param, falling back to config.defaultOrg, then "csu"
+    // Determine org
     var params = new URLSearchParams(window.location.search);
-    var orgKey = params.get("org") || config.defaultOrg || "csu";
+    var hostMatch = window.location.hostname.match(/quiz\.(csu|ccc)\./i);
+    orgKey = params.get("org") || (hostMatch && hostMatch[1].toLowerCase()) || config.defaultOrg || "csu";
     var orgConfig = (config.orgs && config.orgs[orgKey]) || (config.orgs && config.orgs["csu"]) || {};
 
-    // Merge org-specific values into config
     config.title = orgConfig.title || config.title || "DxHub Summer Hackathon";
     config.description = orgConfig.description || config.description || "";
 
-    // Set org logo
     if (orgConfig.logo) {
       document.getElementById("org-logo").src = "logos/" + orgConfig.logo;
     }
-
-    // Set email label if provided
+    requireEdu = orgConfig.requireEdu !== false;
     if (orgConfig.emailLabel) {
       document.querySelector('label[for="email"]').textContent = orgConfig.emailLabel;
+    }
+    if (requireEdu) {
+      emailInput.setAttribute("pattern", ".+\\.edu$");
     }
 
     section1Questions = questions.filter(function (q) { return q.section === 1; });
@@ -100,18 +251,220 @@
     if (!config.showProgressBar) {
       progressWrapper.style.display = "none";
     }
+
+    // Load WAF CAPTCHA (non-blocking)
+    initWafCaptcha();
+
+    // Try restoring session
+    var storedEmail = localStorage.getItem("quiz_auth_email");
+    if (storedEmail) {
+      emailInput.value = storedEmail;
+      var storedName = localStorage.getItem("quiz_auth_name");
+      if (storedName) nameInput.value = storedName;
+      var restored = await tryRefreshSession();
+      if (restored) {
+        returningBanner.style.display = "block";
+        returningInfo.textContent = "Session restored.";
+        startBtn.textContent = "Continue";
+        captchaSolved = true;
+        captchaContainer.style.display = "none";
+      }
+    }
   }
 
-  // --- Screen navigation ---
+  // =========================================================================
+  // SCREEN NAVIGATION
+  // =========================================================================
+
   function showScreen(screen) {
-    [welcomeScreen, tabContainer].forEach(function (s) {
+    [welcomeScreen, otpScreen, tabContainer].forEach(function (s) {
       s.classList.remove("active");
     });
     screen.classList.add("active");
     window.scrollTo(0, 0);
   }
 
-  // --- Tab switching ---
+  // =========================================================================
+  // AUTH FLOW
+  // =========================================================================
+
+  async function handleSendCode(email) {
+    if (wafScriptsLoaded && !captchaSolved) {
+      showCaptchaError("Please complete the CAPTCHA challenge.");
+      return false;
+    }
+
+    startBtn.disabled = true;
+    startBtn.textContent = "Sending code...";
+
+    try {
+      // Use wafFetch so the WAF token is included automatically
+      var res = await wafFetch(config.apiBaseUrl + "/auth/send-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email }),
+      });
+      var data = await res.json();
+
+      if (res.ok && data.success) {
+        return true;
+      } else {
+        showCaptchaError(data.error || "Failed to send verification code.");
+        return false;
+      }
+    } catch (err) {
+      showCaptchaError("Network error. Please try again.");
+      return false;
+    } finally {
+      startBtn.disabled = false;
+      startBtn.textContent = "Get Started";
+    }
+  }
+
+  async function handleVerifyCode(email, code) {
+    verifyOtpBtn.disabled = true;
+    verifyOtpBtn.textContent = "Verifying...";
+
+    try {
+      var res = await fetch(config.apiBaseUrl + "/auth/verify-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email, code: code }),
+      });
+      var data = await res.json();
+
+      if (res.ok && data.success) {
+        _storeTokens(email, {
+          idToken: data.idToken,
+          accessToken: data.accessToken,
+          refreshToken: data.refreshToken,
+        });
+        return true;
+      } else {
+        showOtpError(data.error || "Verification failed.");
+        return false;
+      }
+    } catch (err) {
+      showOtpError("Network error. Please try again.");
+      return false;
+    } finally {
+      verifyOtpBtn.disabled = false;
+      verifyOtpBtn.textContent = "Verify";
+    }
+  }
+
+  async function handleResendCode(email) {
+    resendOtpBtn.disabled = true;
+    hideOtpError();
+
+    try {
+      // WAF token immunity (5 min) should still be valid for resend
+      var res = await wafFetch(config.apiBaseUrl + "/auth/send-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email }),
+      });
+      var data = await res.json();
+
+      if (res.ok) {
+        startResendCooldown();
+      } else {
+        showOtpError(data.error || "Failed to resend code.");
+        resendOtpBtn.disabled = false;
+      }
+    } catch (err) {
+      showOtpError("Network error.");
+      resendOtpBtn.disabled = false;
+    }
+  }
+
+  async function proceedAfterAuth() {
+    var email = emailInput.value.trim().toLowerCase();
+
+    localStorage.setItem("quiz_auth_name", nameInput.value.trim());
+
+    await lookupUser(email);
+
+    renderSection2Questions();
+    if (previousSubmission && previousSubmission.section2Answers) {
+      prefillSection2(previousSubmission.section2Answers);
+    }
+
+    var quizAlreadyDone = previousSubmission && previousSubmission.quizTaken;
+    var frqAlreadyDone = previousSubmission && previousSubmission.section2Answers && previousSubmission.section2Answers.length > 0;
+
+    if (quizAlreadyDone) {
+      var score = previousSubmission.mcqScore || 0;
+      var total = previousSubmission.mcqTotal || 0;
+      var attempts = previousSubmission.mcqAttempts || 0;
+      showQuizLandingWithScore(score, total, attempts);
+      markTabCompleted("quiz");
+      unlockTab("responses");
+    } else {
+      showQuizLandingFresh();
+    }
+
+    if (frqAlreadyDone) {
+      markTabCompleted("responses");
+    }
+
+    if (quizAlreadyDone && frqAlreadyDone) {
+      unlockTab("finish");
+      markTabCompleted("finish");
+    }
+
+    showScreen(tabContainer);
+    if (quizAlreadyDone && frqAlreadyDone) {
+      switchTab("finish");
+    } else {
+      switchTab("quiz");
+    }
+  }
+
+  // =========================================================================
+  // OTP UI helpers
+  // =========================================================================
+
+  function showOtpError(msg) {
+    otpError.textContent = msg;
+    otpError.style.display = "block";
+  }
+
+  function hideOtpError() {
+    otpError.style.display = "none";
+  }
+
+  function showCaptchaError(msg) {
+    captchaError.textContent = msg;
+    captchaError.style.display = "block";
+  }
+
+  function hideCaptchaError() {
+    captchaError.style.display = "none";
+  }
+
+  function startResendCooldown() {
+    var seconds = 30;
+    resendOtpBtn.disabled = true;
+    resendTimer.textContent = "(" + seconds + "s)";
+
+    if (resendCooldownInterval) clearInterval(resendCooldownInterval);
+    resendCooldownInterval = setInterval(function () {
+      seconds--;
+      if (seconds <= 0) {
+        clearInterval(resendCooldownInterval);
+        resendOtpBtn.disabled = false;
+        resendTimer.textContent = "";
+      } else {
+        resendTimer.textContent = "(" + seconds + "s)";
+      }
+    }, 1000);
+  }
+
+  // =========================================================================
+  // TAB SWITCHING
+  // =========================================================================
+
   function switchTab(tabName) {
     currentTab = tabName;
 
@@ -121,11 +474,23 @@
 
     tabPanelQuiz.classList.toggle("active", tabName === "quiz");
     tabPanelResponses.classList.toggle("active", tabName === "responses");
+    tabPanelFinish.classList.toggle("active", tabName === "finish");
 
     window.scrollTo(0, 0);
   }
 
-  // --- Quiz tab internal state management ---
+  function unlockTab(tabName) {
+    tabBtns.forEach(function (btn) {
+      if (btn.dataset.tab === tabName) {
+        btn.classList.remove("locked");
+      }
+    });
+  }
+
+  // =========================================================================
+  // QUIZ TAB STATE
+  // =========================================================================
+
   function showQuizLandingFresh() {
     quizLanding.style.display = "block";
     quizActive.style.display = "none";
@@ -163,15 +528,18 @@
     markTabCompleted("quiz");
   }
 
-  // --- Lookup returning user ---
+  // =========================================================================
+  // USER LOOKUP (authenticated)
+  // =========================================================================
+
   async function lookupUser(email) {
-    if (!config.apiBaseUrl) return;
+    if (!config.apiBaseUrl || !authTokens) return;
 
     var trimmed = email.trim().toLowerCase();
     if (!trimmed) return;
 
     try {
-      var res = await fetch(
+      var res = await authFetch(
         config.apiBaseUrl + "/submission/" + encodeURIComponent(trimmed)
       );
       var data = await res.json();
@@ -183,34 +551,19 @@
         if (previousSubmission.name && !nameInput.value.trim()) {
           nameInput.value = previousSubmission.name;
         }
-
-        var attempts = previousSubmission.mcqAttempts || 0;
-        var score = previousSubmission.mcqScore || 0;
-        var total = previousSubmission.mcqTotal || 0;
-        var quizTaken = previousSubmission.quizTaken || false;
-
-        if (quizTaken) {
-          returningInfo.textContent =
-            attempts + " previous attempt" + (attempts !== 1 ? "s" : "") +
-            ". Best MCQ score: " + score + "/" + total + ".";
-        } else {
-          returningInfo.textContent = "You have saved responses. Your answers will be pre-filled.";
-        }
-
-        returningBanner.style.display = "block";
-        startBtn.textContent = "Continue";
       } else {
         previousSubmission = null;
         isRetry = false;
-        returningBanner.style.display = "none";
-        startBtn.textContent = "Get Started";
       }
     } catch (err) {
       console.warn("Could not look up user:", err);
     }
   }
 
-  // --- Render Section 1 (MCQ) questions ---
+  // =========================================================================
+  // RENDER QUESTIONS
+  // =========================================================================
+
   function renderSection1Questions() {
     mcqQuestionsContainer.innerHTML = "";
     var list = config.shuffleQuestions ? shuffle(section1Questions.slice()) : section1Questions;
@@ -250,7 +603,6 @@
     });
   }
 
-  // --- Render Section 2 (FRQ / matching selection) questions ---
   function renderSection2Questions() {
     frqQuestionsContainer.innerHTML = "";
 
@@ -296,7 +648,6 @@
       frqQuestionsContainer.appendChild(card);
     });
 
-    // Attach char count listeners
     frqQuestionsContainer.querySelectorAll(".frq-textarea").forEach(function (ta) {
       var qid = ta.dataset.qid;
       var q = section2Questions.find(function (x) { return String(x.id) === qid; });
@@ -309,7 +660,6 @@
     });
   }
 
-  // --- Pre-fill section 2 for returning users ---
   function prefillSection2(savedAnswers) {
     savedAnswers.forEach(function (prev) {
       if (prev.type === "frq" && prev.answer) {
@@ -333,7 +683,10 @@
     });
   }
 
-  // --- MCQ Progress ---
+  // =========================================================================
+  // MCQ PROGRESS + TIMER
+  // =========================================================================
+
   function updateMcqProgress() {
     var answered = 0;
     section1Questions.forEach(function (q) {
@@ -346,7 +699,6 @@
     progressText.textContent = answered + " of " + section1Questions.length + " answered";
   }
 
-  // --- Timer ---
   function startTimer(seconds) {
     secondsRemaining = seconds;
     timerDisplay.style.display = "block";
@@ -376,16 +728,17 @@
     return n < 10 ? "0" + n : String(n);
   }
 
-  // --- Quiz Submit ---
+  // =========================================================================
+  // QUIZ SUBMIT
+  // =========================================================================
+
   async function handleQuizSubmit() {
-    // Remove previous warnings
     var existingWarning = document.getElementById("unanswered-warning");
     if (existingWarning) existingWarning.remove();
     mcqQuestionsContainer.querySelectorAll(".unanswered-highlight").forEach(function (el) {
       el.classList.remove("unanswered-highlight");
     });
 
-    // Validate all MCQ answered
     var unanswered = [];
     section1Questions.forEach(function (q) {
       var checked = document.querySelector('input[name="q' + q.id + '"]:checked');
@@ -412,7 +765,6 @@
 
     if (timerInterval) clearInterval(timerInterval);
 
-    // Collect MCQ answers
     var mcqAnswers = [];
     var correctAnswers = {};
     section1Questions.forEach(function (q) {
@@ -426,19 +778,19 @@
       correctAnswers[String(q.id)] = q.correctAnswer;
     });
 
-    // Show result optimistically
     renderMcqResult(mcqAnswers);
     showQuizResult();
+    unlockTab("responses");
 
-    // POST to /submission/quiz
-    if (config.apiBaseUrl) {
+    if (config.apiBaseUrl && authTokens) {
       try {
-        var res = await fetch(config.apiBaseUrl + "/submission/quiz", {
+        var res = await authFetch(config.apiBaseUrl + "/submission/quiz", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             name: nameInput.value.trim(),
             email: emailInput.value.trim().toLowerCase(),
+            uni: orgKey,
             submittedAt: new Date().toISOString(),
             mcqAnswers: mcqAnswers,
             correctAnswers: correctAnswers,
@@ -454,7 +806,10 @@
     }
   }
 
-  // --- Render MCQ result ---
+  // =========================================================================
+  // MCQ RESULT DISPLAY
+  // =========================================================================
+
   function renderMcqResult(mcqAnswers) {
     var correctCount = mcqAnswers.filter(function (a) { return a.isCorrect; }).length;
     var total = mcqAnswers.length;
@@ -492,7 +847,6 @@
     mcqAnswerSummary.innerHTML = html;
   }
 
-  // --- Update result banner with best score ---
   function updateResultBanner(currentScore, currentTotal, bestScore, attemptCount) {
     var bestPct = currentTotal > 0 ? Math.round((bestScore / currentTotal) * 100) : 0;
     var currentPct = currentTotal > 0 ? Math.round((currentScore / currentTotal) * 100) : 0;
@@ -513,7 +867,10 @@
       '<div class="attempt-info">Attempt #' + attemptCount + "</div>";
   }
 
-  // --- Save Section 2 Responses ---
+  // =========================================================================
+  // SAVE SECTION 2 RESPONSES
+  // =========================================================================
+
   async function handleSaveResponses() {
     var answers = [];
     section2Questions.forEach(function (q) {
@@ -530,17 +887,18 @@
       answers.push(entry);
     });
 
-    if (config.apiBaseUrl) {
+    if (config.apiBaseUrl && authTokens) {
       try {
         saveResponsesBtn.disabled = true;
         saveResponsesBtn.textContent = "Saving...";
 
-        var res = await fetch(config.apiBaseUrl + "/submission/responses", {
+        var res = await authFetch(config.apiBaseUrl + "/submission/responses", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             name: nameInput.value.trim(),
             email: emailInput.value.trim().toLowerCase(),
+            uni: orgKey,
             submittedAt: new Date().toISOString(),
             section2Answers: answers,
           }),
@@ -549,6 +907,9 @@
         if (res.ok) {
           showSaveStatus("Responses saved successfully!", "success");
           markTabCompleted("responses");
+          unlockTab("finish");
+          markTabCompleted("finish");
+          switchTab("finish");
         } else {
           showSaveStatus("Failed to save. Please try again.", "error");
         }
@@ -571,7 +932,10 @@
     }, 3000);
   }
 
-  // --- Tab completion tracking ---
+  // =========================================================================
+  // TAB COMPLETION
+  // =========================================================================
+
   function markTabCompleted(tabName) {
     tabBtns.forEach(function (btn) {
       if (btn.dataset.tab === tabName) {
@@ -582,7 +946,10 @@
     });
   }
 
-  // --- Helpers ---
+  // =========================================================================
+  // HELPERS
+  // =========================================================================
+
   function shuffle(arr) {
     for (var i = arr.length - 1; i > 0; i--) {
       var j = Math.floor(Math.random() * (i + 1));
@@ -608,14 +975,13 @@
       .replace(/>/g, "&gt;");
   }
 
-  // --- .edu email validation ---
   function isEduEmail(email) {
     return /\.edu$/i.test(email.trim());
   }
 
   function validateEmail() {
     var val = emailInput.value.trim();
-    if (val && !isEduEmail(val)) {
+    if (requireEdu && val && !isEduEmail(val)) {
       emailError.style.display = "block";
       emailInput.setCustomValidity("Please enter a valid .edu email address.");
       return false;
@@ -625,60 +991,88 @@
     return true;
   }
 
-  // --- Events ---
+  // =========================================================================
+  // EVENT LISTENERS
+  // =========================================================================
+
   emailInput.addEventListener("blur", function () {
-    if (validateEmail()) {
-      lookupUser(emailInput.value);
-    }
+    validateEmail();
   });
 
   emailInput.addEventListener("input", function () {
     validateEmail();
   });
 
+  otpCodeInput.addEventListener("input", function () {
+    var val = otpCodeInput.value.replace(/[^0-9]/g, "");
+    otpCodeInput.value = val;
+    verifyOtpBtn.disabled = val.length !== 6;
+  });
+
   // Welcome form submit
-  infoForm.addEventListener("submit", function (e) {
+  infoForm.addEventListener("submit", async function (e) {
     e.preventDefault();
     if (!validateEmail()) return;
+    hideCaptchaError();
 
-    // Render section 2 questions immediately
-    renderSection2Questions();
+    var email = emailInput.value.trim().toLowerCase();
 
-    // Pre-fill section 2 if returning user
-    if (previousSubmission && previousSubmission.section2Answers) {
-      prefillSection2(previousSubmission.section2Answers);
+    // Already authenticated for this email — skip OTP
+    var storedEmail = localStorage.getItem("quiz_auth_email");
+    if (authTokens && storedEmail === email) {
+      await proceedAfterAuth();
+      return;
     }
 
-    // Set up quiz landing based on previous submission
-    var quizAlreadyDone = previousSubmission && previousSubmission.quizTaken;
-    if (quizAlreadyDone) {
-      var score = previousSubmission.mcqScore || 0;
-      var total = previousSubmission.mcqTotal || 0;
-      var attempts = previousSubmission.mcqAttempts || 0;
-      showQuizLandingWithScore(score, total, attempts);
-      markTabCompleted("quiz");
-    } else {
-      showQuizLandingFresh();
+    // Send verification code (WAF validates CAPTCHA before it reaches Lambda)
+    var sent = await handleSendCode(email);
+    if (sent) {
+      otpEmailDisplay.textContent = email;
+      otpCodeInput.value = "";
+      verifyOtpBtn.disabled = true;
+      hideOtpError();
+      showScreen(otpScreen);
+      otpCodeInput.focus();
+      startResendCooldown();
+    }
+  });
+
+  // Verify OTP
+  verifyOtpBtn.addEventListener("click", async function () {
+    var email = emailInput.value.trim().toLowerCase();
+    var code = otpCodeInput.value.trim();
+
+    if (code.length !== 6) {
+      showOtpError("Please enter the 6-digit code.");
+      return;
     }
 
-    // Mark responses tab complete if they have saved answers
-    if (previousSubmission && previousSubmission.section2Answers && previousSubmission.section2Answers.length > 0) {
-      markTabCompleted("responses");
+    var success = await handleVerifyCode(email, code);
+    if (success) {
+      await proceedAfterAuth();
     }
+  });
 
-    // Show tab container - default to Free Response if quiz already done
-    showScreen(tabContainer);
-    switchTab(quizAlreadyDone ? "responses" : "quiz");
+  // Resend OTP
+  resendOtpBtn.addEventListener("click", function () {
+    handleResendCode(emailInput.value.trim().toLowerCase());
+  });
+
+  // Back from OTP screen
+  otpBackBtn.addEventListener("click", function () {
+    if (resendCooldownInterval) clearInterval(resendCooldownInterval);
+    if (wafScriptsLoaded) renderCaptchaWidget();
+    showScreen(welcomeScreen);
   });
 
   // Tab switching
   tabBtns.forEach(function (btn) {
     btn.addEventListener("click", function () {
+      if (btn.classList.contains("locked")) return;
       switchTab(btn.dataset.tab);
     });
   });
 
-  // Start / retry quiz from landing
   startQuizBtn.addEventListener("click", function () {
     renderSection1Questions();
     updateMcqProgress();
@@ -688,12 +1082,10 @@
     }
   });
 
-  // Submit quiz
   submitQuizBtn.addEventListener("click", function () {
     handleQuizSubmit();
   });
 
-  // Retry from result screen
   retryQuizBtn.addEventListener("click", function () {
     renderSection1Questions();
     updateMcqProgress();
@@ -703,16 +1095,17 @@
     }
   });
 
-  // Continue to Free Response from quiz result
   continueToFrqBtn.addEventListener("click", function () {
     switchTab("responses");
   });
 
-  // Save section 2 responses
   saveResponsesBtn.addEventListener("click", function () {
     handleSaveResponses();
   });
 
-  // --- Boot ---
+  // =========================================================================
+  // BOOT
+  // =========================================================================
+
   init();
 })();

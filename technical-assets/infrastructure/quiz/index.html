@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DxHub CCC Summer Hackathon Quiz</title>
+  <title>DxHub Summer Hackathon Quiz</title>
   <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/png" href="logos/dxhub.png">
 </head>
 <body>
 
@@ -16,7 +17,7 @@
     </div>
 
     <header class="header">
-      <h1 id="header-title">DxHub CCC Summer Hackathon Quiz</h1>
+      <h1 id="header-title">DxHub Summer Hackathon Quiz</h1>
       <div class="subtitle">Cal Poly Digital Transformation Hub</div>
     </header>
 
@@ -33,13 +34,16 @@
           </div>
           <div class="form-group">
             <label for="email">Email Address - Use Campus Email Only</label>
-            <input type="email" id="email" name="email" required placeholder="jdoe@calpoly.edu" pattern=".+\.edu$">
+            <input type="email" id="email" name="email" required placeholder="jdoe@calpoly.edu">
             <span class="email-error" id="email-error" style="display:none; color:#c0392b; font-size:0.9rem;">Please enter a valid .edu email address.</span>
           </div>
           <div id="returning-user-banner" class="returning-user-banner" style="display:none;">
             <strong>Welcome back!</strong>
             <p id="returning-user-info"></p>
           </div>
+          <!-- WAF CAPTCHA renders here (loaded dynamically from config) -->
+          <div id="captcha-container" class="captcha-container"></div>
+          <div id="captcha-error" class="captcha-error" style="display:none;"></div>
           <div class="text-center mt-2">
             <button type="submit" class="btn btn-primary" id="start-btn">Get Started</button>
           </div>
@@ -47,7 +51,33 @@
       </div>
     </div>
 
-    <!-- Screen 2: Tab Container -->
+    <!-- Screen 2: OTP Verification -->
+    <div id="otp-screen" class="screen">
+      <div class="card text-center">
+        <h2>Verify Your Email</h2>
+        <p>We sent a 6-digit verification code to</p>
+        <p class="otp-email-highlight"><strong id="otp-email-display"></strong></p>
+        <div class="form-group otp-form-group">
+          <input type="text" id="otp-code" class="otp-input" maxlength="6"
+                 pattern="[0-9]{6}" placeholder="000000" inputmode="numeric"
+                 autocomplete="one-time-code">
+        </div>
+        <div id="otp-error" class="otp-error" style="display:none;"></div>
+        <div class="text-center mt-2">
+          <button class="btn btn-primary" id="verify-otp-btn" disabled>Verify</button>
+        </div>
+        <p class="otp-resend-text mt-2">
+          Didn't receive the code?
+          <button type="button" class="btn-link" id="resend-otp-btn" disabled>Resend</button>
+          <span id="resend-timer"></span>
+        </p>
+        <p class="otp-back-text mt-1">
+          <button type="button" class="btn-link" id="otp-back-btn">Back</button>
+        </p>
+      </div>
+    </div>
+
+    <!-- Screen 3: Tab Container -->
     <div id="tab-container" class="screen">
 
       <!-- Tab Navigation Bar -->
@@ -56,16 +86,18 @@
           <span class="tab-step">1</span>
           <span class="tab-label">Quiz</span>
         </button>
-        <button class="tab-btn" data-tab="responses">
+        <button class="tab-btn locked" data-tab="responses">
           <span class="tab-step">2</span>
           <span class="tab-label">Free Response</span>
+        </button>
+        <button class="tab-btn locked" data-tab="finish">
+          <span class="tab-step">3</span>
+          <span class="tab-label">Finish</span>
         </button>
       </div>
 
       <!-- Tab 1: Quiz (MCQ) -->
       <div id="tab-panel-quiz" class="tab-panel active">
-
-        <!-- Landing state: before quiz starts -->
         <div id="quiz-landing" class="card text-center">
           <h2>Multiple Choice Quiz</h2>
           <p id="quiz-landing-info">Test your knowledge on Amazon Bedrock and hackathon concepts.</p>
@@ -77,7 +109,6 @@
           </div>
         </div>
 
-        <!-- Active quiz state: taking the quiz -->
         <div id="quiz-active" style="display:none;">
           <div id="timer-display" class="timer" style="display:none;"></div>
           <div id="progress-wrapper">
@@ -92,7 +123,6 @@
           </div>
         </div>
 
-        <!-- Result state: after quiz submission -->
         <div id="quiz-result" style="display:none;">
           <div class="card text-center">
             <div class="submission-icon">&#10003;</div>
@@ -105,7 +135,6 @@
           </div>
           <div class="submission-summary" id="mcq-answer-summary"></div>
         </div>
-
       </div>
 
       <!-- Tab 2: Free Response -->
@@ -118,6 +147,16 @@
         <div id="responses-save-status" class="save-status" style="display:none;"></div>
         <div class="text-center mt-3">
           <button class="btn btn-primary" id="save-responses-btn">Save Responses</button>
+        </div>
+      </div>
+
+      <!-- Tab 3: Finish -->
+      <div id="tab-panel-finish" class="tab-panel">
+        <div class="finish-card">
+          <div class="finish-icon">&#127891;</div>
+          <h2>Thanks for completing our quiz!</h2>
+          <p>Your responses have been recorded.</p>
+          <p>You may re-take the quiz to improve your score or update your free response questions at any time.</p>
         </div>
       </div>
 

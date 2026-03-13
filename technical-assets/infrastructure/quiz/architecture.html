@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz App — Security Architecture</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0d1117;
+    color: #c9d1d9;
+    padding: 2rem;
+    min-height: 100vh;
+  }
+  h1 { text-align: center; font-size: 1.6rem; color: #58a6ff; margin-bottom: 0.25rem; }
+  .subtitle { text-align: center; font-size: 0.9rem; color: #8b949e; margin-bottom: 2.5rem; }
+
+  .diagram { max-width: 1000px; margin: 0 auto; position: relative; }
+
+  /* ---- Flow rows ---- */
+  .flow-row {
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-bottom: 0.25rem;
+    position: relative;
+  }
+
+  /* ---- Arrow between rows ---- */
+  .arrow-row {
+    display: flex;
+    justify-content: center;
+    margin: 0.3rem 0;
+  }
+  .arrow-row svg { display: block; }
+
+  /* ---- Boxes ---- */
+  .box {
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    text-align: center;
+    min-width: 180px;
+    position: relative;
+  }
+  .box h3 { font-size: 0.95rem; margin-bottom: 0.4rem; }
+  .box p, .box ul { font-size: 0.78rem; color: #8b949e; line-height: 1.5; }
+  .box ul { text-align: left; padding-left: 1.1rem; margin-top: 0.3rem; }
+  .box ul li { margin-bottom: 0.15rem; }
+
+  /* Layer styles */
+  .layer-label {
+    position: absolute;
+    left: -1rem;
+    top: 50%;
+    transform: translateY(-50%) rotate(-90deg);
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+    color: #484f58;
+  }
+
+  .client      { background: #1c2333; border: 1.5px solid #388bfd; }
+  .client h3   { color: #58a6ff; }
+  .waf         { background: #1a1e2e; border: 1.5px solid #d29922; }
+  .waf h3      { color: #d29922; }
+  .apigw       { background: #1a2332; border: 1.5px solid #3fb950; }
+  .apigw h3    { color: #3fb950; }
+  .lambda      { background: #1f1a2e; border: 1.5px solid #bc8cff; }
+  .lambda h3   { color: #bc8cff; }
+  .data        { background: #2a1a1a; border: 1.5px solid #f85149; }
+  .data h3     { color: #f85149; }
+
+  /* Shield badges */
+  .shield {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.15rem 0.45rem;
+    border-radius: 4px;
+    margin: 0.15rem 0.1rem;
+    white-space: nowrap;
+  }
+  .shield-yellow { background: rgba(210,153,34,0.15); color: #d29922; border: 1px solid rgba(210,153,34,0.3); }
+  .shield-green  { background: rgba(63,185,80,0.15); color: #3fb950; border: 1px solid rgba(63,185,80,0.3); }
+  .shield-purple { background: rgba(188,140,255,0.15); color: #bc8cff; border: 1px solid rgba(188,140,255,0.3); }
+  .shield-red    { background: rgba(248,81,73,0.15); color: #f85149; border: 1px solid rgba(248,81,73,0.3); }
+  .shield-blue   { background: rgba(56,139,253,0.15); color: #58a6ff; border: 1px solid rgba(56,139,253,0.3); }
+
+  /* Wide box spanning full row */
+  .wide { flex: 1; max-width: 700px; }
+
+  /* Side-by-side */
+  .side-pair { display: flex; gap: 1.5rem; justify-content: center; }
+  .side-pair .box { flex: 1; max-width: 340px; }
+
+  /* Bottom trio */
+  .trio { display: flex; gap: 1.5rem; justify-content: center; }
+  .trio .box { flex: 1; max-width: 220px; }
+
+  /* Legend */
+  .legend {
+    max-width: 1000px;
+    margin: 2.5rem auto 0;
+    padding: 1.25rem;
+    background: #161b22;
+    border-radius: 10px;
+    border: 1px solid #30363d;
+  }
+  .legend h3 { font-size: 0.9rem; color: #c9d1d9; margin-bottom: 0.75rem; }
+  .legend-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem 2rem;
+  }
+  .legend-item { display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.78rem; line-height: 1.5; }
+  .legend-icon {
+    flex-shrink: 0;
+    width: 20px; height: 20px;
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem;
+  }
+  .li-pass { background: rgba(63,185,80,0.2); color: #3fb950; }
+  .li-warn { background: rgba(210,153,34,0.2); color: #d29922; }
+
+  /* Responsive */
+  @media (max-width: 700px) {
+    .side-pair, .trio { flex-direction: column; align-items: center; }
+    .legend-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<h1>DxHub Quiz — Security Architecture</h1>
+<p class="subtitle">Request flow from browser to database with security controls at each layer</p>
+
+<div class="diagram">
+
+  <!-- ROW 1: Client -->
+  <div class="flow-row">
+    <div class="box client wide">
+      <h3>Browser (Student)</h3>
+      <p>CloudFront / Custom Domain</p>
+      <p style="margin-top:0.4rem;">
+        <span class="shield shield-blue">quiz.csu.aicamp.calpoly.io</span>
+        <span class="shield shield-blue">quiz.ccc.aicamp.calpoly.io</span>
+      </p>
+      <p style="margin-top:0.5rem; font-size:0.75rem;">
+        Static site (S3) &rarr; CAPTCHA widget rendered &rarr; OTP email verification &rarr; JWT stored in localStorage
+      </p>
+    </div>
+  </div>
+
+  <div class="arrow-row">
+    <svg width="40" height="36"><path d="M20 4 L20 26" stroke="#484f58" stroke-width="2" fill="none"/><path d="M13 20 L20 30 L27 20" stroke="#484f58" stroke-width="2" fill="none"/></svg>
+  </div>
+
+  <!-- ROW 2: WAF -->
+  <div class="flow-row">
+    <div class="box waf wide">
+      <h3>AWS WAF v2</h3>
+      <p>Attached to API Gateway &middot; First line of defense</p>
+      <div style="margin-top:0.5rem;">
+        <span class="shield shield-yellow">CAPTCHA on /auth/send-code</span>
+        <span class="shield shield-yellow">IP Rate Limit: 100/5min</span>
+        <span class="shield shield-yellow">TokenDomains: 4 origins</span>
+        <span class="shield shield-yellow">5-min CAPTCHA immunity</span>
+      </div>
+      <ul style="margin-top:0.5rem;">
+        <li>Blocks requests without valid CAPTCHA token on send-code</li>
+        <li>Blocks IPs exceeding 100 requests per 5-minute window</li>
+        <li>All blocked before Lambda is invoked (zero compute cost)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="arrow-row">
+    <svg width="40" height="36"><path d="M20 4 L20 26" stroke="#484f58" stroke-width="2" fill="none"/><path d="M13 20 L20 30 L27 20" stroke="#484f58" stroke-width="2" fill="none"/></svg>
+  </div>
+
+  <!-- ROW 3: API Gateway -->
+  <div class="flow-row">
+    <div class="box apigw wide">
+      <h3>API Gateway (REST API)</h3>
+      <p>Cognito JWT Authorizer &middot; Throttling</p>
+      <div style="margin-top:0.5rem;">
+        <span class="shield shield-green">Cognito Authorizer (default)</span>
+        <span class="shield shield-green">10 req/s sustained</span>
+        <span class="shield shield-green">50 burst</span>
+      </div>
+      <div class="side-pair" style="margin-top:0.75rem;">
+        <div style="flex:1; text-align:left; font-size:0.75rem; padding:0.5rem; background:rgba(63,185,80,0.05); border-radius:6px;">
+          <strong style="color:#3fb950;">Public (Auth: NONE)</strong><br>
+          POST /auth/send-code<br>
+          POST /auth/verify-code<br>
+          POST /auth/refresh
+        </div>
+        <div style="flex:1; text-align:left; font-size:0.75rem; padding:0.5rem; background:rgba(63,185,80,0.05); border-radius:6px;">
+          <strong style="color:#3fb950;">Protected (JWT Required)</strong><br>
+          GET /submission/{email}<br>
+          POST /submission/quiz<br>
+          POST /submission/responses
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow-row">
+    <svg width="200" height="36">
+      <path d="M60 4 L60 26" stroke="#484f58" stroke-width="2" fill="none"/>
+      <path d="M53 20 L60 30 L67 20" stroke="#484f58" stroke-width="2" fill="none"/>
+      <path d="M140 4 L140 26" stroke="#484f58" stroke-width="2" fill="none"/>
+      <path d="M133 20 L140 30 L147 20" stroke="#484f58" stroke-width="2" fill="none"/>
+    </svg>
+  </div>
+
+  <!-- ROW 4: Lambda functions -->
+  <div class="side-pair">
+    <div class="box lambda">
+      <h3>Auth Lambda</h3>
+      <p>Passwordless OTP flow</p>
+      <div style="margin-top:0.4rem;">
+        <span class="shield shield-purple">.edu validation</span>
+        <span class="shield shield-purple">5 OTP/hr per email</span>
+      </div>
+      <ul style="margin-top:0.4rem;">
+        <li>Cognito sign-up / forgot-password</li>
+        <li>OTP code verification</li>
+        <li>32-char random passwords (server-only)</li>
+        <li>Auth state in DynamoDB (2h TTL)</li>
+        <li>Dynamic CORS origin check</li>
+      </ul>
+    </div>
+    <div class="box lambda">
+      <h3>Quiz Lambda</h3>
+      <p>Submission CRUD</p>
+      <div style="margin-top:0.4rem;">
+        <span class="shield shield-purple">JWT email binding</span>
+        <span class="shield shield-purple">Input validation</span>
+      </div>
+      <ul style="margin-top:0.4rem;">
+        <li>JWT email must match request email</li>
+        <li>Server-side MCQ grading</li>
+        <li>Name: 200 chars, Answers: 100 max</li>
+        <li>Answer text: 5000 chars each</li>
+        <li>uni must be "csu" or "ccc"</li>
+        <li>Dynamic CORS origin check</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="arrow-row">
+    <svg width="200" height="36">
+      <path d="M60 4 L60 26" stroke="#484f58" stroke-width="2" fill="none"/>
+      <path d="M53 20 L60 30 L67 20" stroke="#484f58" stroke-width="2" fill="none"/>
+      <path d="M140 4 L140 26" stroke="#484f58" stroke-width="2" fill="none"/>
+      <path d="M133 20 L140 30 L147 20" stroke="#484f58" stroke-width="2" fill="none"/>
+    </svg>
+  </div>
+
+  <!-- ROW 5: Data stores -->
+  <div class="trio">
+    <div class="box data">
+      <h3>Cognito User Pool</h3>
+      <div style="margin-top:0.3rem;">
+        <span class="shield shield-red">Email OTP</span>
+        <span class="shield shield-red">JWT issuer</span>
+      </div>
+      <ul>
+        <li>Email-based usernames</li>
+        <li>Case-insensitive</li>
+        <li>PreventUserExistenceErrors</li>
+        <li>1h token / 30d refresh</li>
+      </ul>
+    </div>
+    <div class="box data">
+      <h3>DynamoDB<br><small style="color:#8b949e">quiz-submissions</small></h3>
+      <div style="margin-top:0.3rem;">
+        <span class="shield shield-red">PK: email</span>
+      </div>
+      <ul>
+        <li>Quiz scores (best kept)</li>
+        <li>FRQ answers</li>
+        <li>Attempt count</li>
+        <li>Organization (uni)</li>
+      </ul>
+    </div>
+    <div class="box data">
+      <h3>DynamoDB<br><small style="color:#8b949e">quiz-auth-state</small></h3>
+      <div style="margin-top:0.3rem;">
+        <span class="shield shield-red">TTL: 2 hours</span>
+      </div>
+      <ul>
+        <li>Temp passwords</li>
+        <li>OTP send timestamps</li>
+        <li>Auth flow status</li>
+        <li>Auto-expires via TTL</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<!-- Legend / Attack Scenarios -->
+<div class="legend">
+  <h3>Attack Scenario Verdicts</h3>
+  <div class="legend-grid">
+    <div class="legend-item">
+      <div class="legend-icon li-pass">&#10003;</div>
+      <div><strong>Spam OTP emails</strong> — Blocked by WAF CAPTCHA + 5/hr per-email rate limit + IP rate limit</div>
+    </div>
+    <div class="legend-item">
+      <div class="legend-icon li-pass">&#10003;</div>
+      <div><strong>Spoof another student's responses</strong> — JWT email must match; requires victim's email inbox access</div>
+    </div>
+    <div class="legend-item">
+      <div class="legend-icon li-pass">&#10003;</div>
+      <div><strong>Read another student's data</strong> — JWT email binding on GET; returns 403 for mismatched emails</div>
+    </div>
+    <div class="legend-item">
+      <div class="legend-icon li-pass">&#10003;</div>
+      <div><strong>DDoS the API</strong> — WAF IP rate limit + API Gateway throttling; blocked before Lambda runs</div>
+    </div>
+    <div class="legend-item">
+      <div class="legend-icon li-pass">&#10003;</div>
+      <div><strong>Use non-.edu email</strong> — Server-side .edu validation on all write endpoints + Cognito OTP</div>
+    </div>
+    <div class="legend-item">
+      <div class="legend-icon li-warn">!</div>
+      <div><strong>Cheat quiz score</strong> — correctAnswers sent from client; server re-grades but uses client answer key</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

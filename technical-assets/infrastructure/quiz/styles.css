@@ -624,6 +624,41 @@ body {
   border-color: var(--cp-green);
 }
 
+.tab-btn.locked {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Finish tab panel */
+.finish-card {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: var(--white);
+  border-radius: 12px;
+  border: 1px solid var(--gray-200);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+.finish-icon {
+  font-size: 3.5rem;
+  margin-bottom: 1rem;
+}
+
+.finish-card h2 {
+  color: var(--cp-green);
+  font-size: 1.6rem;
+  margin-bottom: 1rem;
+}
+
+.finish-card p {
+  color: var(--gray-600);
+  font-size: 1.05rem;
+  line-height: 1.7;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
 /* Result action buttons */
 .result-actions {
   display: flex;
@@ -663,6 +698,89 @@ body {
   background: #fef2f2;
   color: #b91c1c;
   border: 1px solid #fecaca;
+}
+
+/* CAPTCHA */
+.captcha-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.captcha-error {
+  text-align: center;
+  color: #b91c1c;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+/* OTP verification screen */
+.otp-email-highlight {
+  color: var(--cp-green);
+  font-size: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.otp-form-group {
+  display: flex;
+  justify-content: center;
+}
+
+.otp-input {
+  width: 180px;
+  padding: 14px;
+  border: 2px solid var(--gray-300);
+  border-radius: var(--radius);
+  font-size: 1.75rem;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 0.5em;
+  font-family: monospace;
+  transition: border-color 0.2s;
+}
+
+.otp-input:focus {
+  outline: none;
+  border-color: var(--cp-green);
+  box-shadow: 0 0 0 3px rgba(30, 77, 43, 0.15);
+}
+
+.otp-error {
+  text-align: center;
+  color: #b91c1c;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.otp-resend-text,
+.otp-back-text {
+  font-size: 0.9rem;
+  color: var(--gray-500);
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--cp-green);
+  font-weight: 600;
+  cursor: pointer;
+  font-size: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  padding: 0;
+}
+
+.btn-link:hover {
+  color: var(--cp-gold);
+}
+
+.btn-link:disabled {
+  color: var(--gray-300);
+  cursor: not-allowed;
+  text-decoration: none;
 }
 
 /* Responsive */

@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(aws s3:*)",
+      "Bash(aws:*)"
+    ]
+  }
+}

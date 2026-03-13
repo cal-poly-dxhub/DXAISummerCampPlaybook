@@ -45,11 +45,16 @@ def main():
     s2_questions = []
     for item in items:
         for ans in item.get("section2Answers", []):
-            if ans.get("question") and ans["question"] not in s2_questions:
-                s2_questions.append(ans["question"])
+            if not isinstance(ans, dict):
+                continue
+            q = ans.get("question")
+            if not isinstance(q, str) or not q:
+                continue
+            if q not in s2_questions:
+                s2_questions.append(q)
 
     # Build CSV
-    headers = ["email", "name", "quizTaken", "mcqAttempts", "mcqScore", "mcqTotal", "submittedAt"]
+    headers = ["email", "name", "uni", "quizTaken", "mcqAttempts", "mcqScore", "mcqTotal", "submittedAt"]
     for q in s2_questions:
         headers.append(f"Response: {q}")
 
@@ -60,9 +65,11 @@ def main():
         writer.writerow(headers)
 
         for item in items:
+            email = item.get("email", "")
             row = [
-                item.get("email", ""),
+                email,
                 item.get("name", ""),
+                item.get("uni", ""),
                 item.get("quizTaken", False),
                 item.get("mcqAttempts", 0),
                 item.get("mcqScore", 0),
@@ -70,7 +77,20 @@ def main():
                 item.get("submittedAt", ""),
             ]
 
-            answers = {a["question"]: a.get("answer", "") for a in item.get("section2Answers", [])}
+            answers = {}
+            for a in item.get("section2Answers", []):
+                if not isinstance(a, dict):
+                    print(f"  WARNING: [{email}] malformed answer entry (not a dict): {a!r}")
+                    continue
+                q = a.get("question")
+                if not isinstance(q, str) or not q:
+                    print(f"  WARNING: [{email}] malformed answer entry (bad/missing question): {a!r}")
+                    continue
+                val = a.get("answer", "")
+                if not isinstance(val, str):
+                    print(f"  WARNING: [{email}] non-string answer for \"{q}\": {val!r}")
+                    val = str(val)
+                answers[q] = val
             for q in s2_questions:
                 row.append(answers.get(q, ""))
 

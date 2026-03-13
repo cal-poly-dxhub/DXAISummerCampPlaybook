@@ -1,14 +1,85 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-Description: Quiz submission backend - DynamoDB + Lambda + API Gateway
+Description: Quiz backend - REST API + Cognito + WAF CAPTCHA
+
+Parameters:
+  CorsOriginCSU:
+    Type: String
+    Description: CloudFront origin URL for CSU site (e.g. https://d111111abcdef8.cloudfront.net)
+  CorsOriginCCC:
+    Type: String
+    Description: CloudFront origin URL for CCC site (e.g. https://d222222abcdef8.cloudfront.net)
+  CustomDomainCSU:
+    Type: String
+    Default: https://quiz.csu.aicamp.calpoly.io
+    Description: Custom domain for CSU site
+  CustomDomainCCC:
+    Type: String
+    Default: https://quiz.ccc.aicamp.calpoly.io
+    Description: Custom domain for CCC site
 
 Globals:
   Function:
     Timeout: 10
     Runtime: python3.13
     MemorySize: 128
+    Environment:
+      Variables:
+        ALLOWED_ORIGINS: !Sub "${CorsOriginCSU},${CorsOriginCCC},${CustomDomainCSU},${CustomDomainCCC}"
 
 Resources:
+  # ---------- Cognito ----------
+  CognitoUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: quiz-user-pool
+      UsernameAttributes:
+        - email
+      AutoVerifiedAttributes:
+        - email
+      UsernameConfiguration:
+        CaseSensitive: false
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 16
+          RequireLowercase: false
+          RequireNumbers: false
+          RequireSymbols: false
+          RequireUppercase: false
+      Schema:
+        - Name: email
+          AttributeDataType: String
+          Mutable: true
+          Required: true
+      VerificationMessageTemplate:
+        DefaultEmailOption: CONFIRM_WITH_CODE
+        EmailSubject: "DxHub Quiz - Your Verification Code"
+        EmailMessage: "Your DxHub Quiz verification code is: {####}"
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - Name: verified_email
+            Priority: 1
+
+  CognitoUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId: !Ref CognitoUserPool
+      ClientName: quiz-client
+      ExplicitAuthFlows:
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_ADMIN_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      GenerateSecret: false
+      PreventUserExistenceErrors: ENABLED
+      AccessTokenValidity: 1
+      IdTokenValidity: 1
+      RefreshTokenValidity: 30
+      TokenValidityUnits:
+        AccessToken: hours
+        IdToken: hours
+        RefreshToken: days
+
+  # ---------- DynamoDB ----------
   QuizSubmissionsTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -21,6 +92,186 @@ Resources:
         - AttributeName: email
           KeyType: HASH
 
+  AuthStateTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: quiz-auth-state
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: email
+          AttributeType: S
+      KeySchema:
+        - AttributeName: email
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  # ---------- REST API ----------
+  QuizApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+      Auth:
+        DefaultAuthorizer: CognitoAuthorizer
+        AddDefaultAuthorizerToCorsPreflight: false
+        Authorizers:
+          CognitoAuthorizer:
+            UserPoolArn: !GetAtt CognitoUserPool.Arn
+      Cors:
+        AllowOrigin: "'*'"
+        AllowMethods: "'GET,POST,OPTIONS'"
+        AllowHeaders: "'Content-Type,Authorization,x-aws-waf-token'"
+      MethodSettings:
+        - HttpMethod: "*"
+          ResourcePath: "/*"
+          ThrottlingBurstLimit: 50
+          ThrottlingRateLimit: 10
+
+  # Gateway responses ensure CORS headers on 4xx/5xx from API Gateway itself
+  GatewayResponseDefault4XX:
+    Type: AWS::ApiGateway::GatewayResponse
+    Properties:
+      RestApiId: !Ref QuizApi
+      ResponseType: DEFAULT_4XX
+      ResponseParameters:
+        gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+        gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,x-aws-waf-token'"
+
+  GatewayResponseDefault5XX:
+    Type: AWS::ApiGateway::GatewayResponse
+    Properties:
+      RestApiId: !Ref QuizApi
+      ResponseType: DEFAULT_5XX
+      ResponseParameters:
+        gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+        gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,x-aws-waf-token'"
+
+  # ---------- WAF ----------
+  WafWebAcl:
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      Name: quiz-api-waf
+      Scope: REGIONAL
+      DefaultAction:
+        Allow: {}
+      TokenDomains:
+        - !Select [2, !Split ["/", !Ref CorsOriginCSU]]
+        - !Select [2, !Split ["/", !Ref CorsOriginCCC]]
+        - !Select [2, !Split ["/", !Ref CustomDomainCSU]]
+        - !Select [2, !Split ["/", !Ref CustomDomainCCC]]
+      CaptchaConfig:
+        ImmunityTimeProperty:
+          ImmunityTime: 300
+      VisibilityConfig:
+        CloudWatchMetricsEnabled: true
+        MetricName: QuizApiWaf
+        SampledRequestsEnabled: true
+      Rules:
+        # CAPTCHA on the send-code endpoint
+        - Name: CaptchaSendCode
+          Priority: 1
+          Action:
+            Captcha: {}
+          Statement:
+            AndStatement:
+              Statements:
+                - ByteMatchStatement:
+                    SearchString: /prod/auth/send-code
+                    FieldToMatch:
+                      UriPath: {}
+                    TextTransformations:
+                      - Priority: 0
+                        Type: NONE
+                    PositionalConstraint: EXACTLY
+                - ByteMatchStatement:
+                    SearchString: POST
+                    FieldToMatch:
+                      Method: {}
+                    TextTransformations:
+                      - Priority: 0
+                        Type: NONE
+                    PositionalConstraint: EXACTLY
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: CaptchaSendCode
+            SampledRequestsEnabled: true
+        # Rate limit: ~1200 req/hour per IP (100 per 5-min window, the minimum)
+        - Name: RateLimitPerIP
+          Priority: 2
+          Action:
+            Block: {}
+          Statement:
+            RateBasedStatement:
+              Limit: 100
+              AggregateKeyType: IP
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: RateLimitPerIP
+            SampledRequestsEnabled: true
+
+  WafAssociation:
+    Type: AWS::WAFv2::WebACLAssociation
+    DependsOn: QuizApiprodStage
+    Properties:
+      ResourceArn: !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/${QuizApi}/stages/prod"
+      WebACLArn: !GetAtt WafWebAcl.Arn
+
+  # ---------- Auth Lambda (unauthenticated routes) ----------
+  AuthFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: auth_handler.lambda_handler
+      CodeUri: src/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref AuthStateTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - cognito-idp:AdminGetUser
+                - cognito-idp:AdminInitiateAuth
+                - cognito-idp:AdminSetUserPassword
+                - cognito-idp:AdminDeleteUser
+                - cognito-idp:SignUp
+                - cognito-idp:ConfirmSignUp
+                - cognito-idp:ResendConfirmationCode
+                - cognito-idp:ForgotPassword
+                - cognito-idp:ConfirmForgotPassword
+              Resource: !GetAtt CognitoUserPool.Arn
+      Environment:
+        Variables:
+          AUTH_STATE_TABLE: !Ref AuthStateTable
+          USER_POOL_ID: !Ref CognitoUserPool
+          USER_POOL_CLIENT_ID: !Ref CognitoUserPoolClient
+          CCC_ORIGINS: !Sub "${CorsOriginCCC},${CustomDomainCCC}"
+      Events:
+        SendCode:
+          Type: Api
+          Properties:
+            Path: /auth/send-code
+            Method: POST
+            RestApiId: !Ref QuizApi
+            Auth:
+              Authorizer: NONE
+        VerifyCode:
+          Type: Api
+          Properties:
+            Path: /auth/verify-code
+            Method: POST
+            RestApiId: !Ref QuizApi
+            Auth:
+              Authorizer: NONE
+        RefreshToken:
+          Type: Api
+          Properties:
+            Path: /auth/refresh
+            Method: POST
+            RestApiId: !Ref QuizApi
+            Auth:
+              Authorizer: NONE
+
+  # ---------- Quiz Lambda (JWT-protected routes) ----------
   QuizFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -34,38 +285,34 @@ Resources:
           TABLE_NAME: !Ref QuizSubmissionsTable
       Events:
         GetSubmission:
-          Type: HttpApi
+          Type: Api
           Properties:
             Path: /submission/{email}
             Method: GET
-            ApiId: !Ref QuizHttpApi
+            RestApiId: !Ref QuizApi
         PostQuiz:
-          Type: HttpApi
+          Type: Api
           Properties:
             Path: /submission/quiz
             Method: POST
-            ApiId: !Ref QuizHttpApi
+            RestApiId: !Ref QuizApi
         PostResponses:
-          Type: HttpApi
+          Type: Api
           Properties:
             Path: /submission/responses
             Method: POST
-            ApiId: !Ref QuizHttpApi
-
-  QuizHttpApi:
-    Type: AWS::Serverless::HttpApi
-    Properties:
-      CorsConfiguration:
-        AllowOrigins:
-          - "*"
-        AllowMethods:
-          - GET
-          - POST
-          - OPTIONS
-        AllowHeaders:
-          - Content-Type
+            RestApiId: !Ref QuizApi
 
 Outputs:
   ApiUrl:
-    Description: API Gateway endpoint URL
-    Value: !Sub "https://${QuizHttpApi}.execute-api.${AWS::Region}.amazonaws.com"
+    Description: API Gateway endpoint URL (include /prod stage)
+    Value: !Sub "https://${QuizApi}.execute-api.${AWS::Region}.amazonaws.com/prod"
+  UserPoolId:
+    Description: Cognito User Pool ID
+    Value: !Ref CognitoUserPool
+  UserPoolClientId:
+    Description: Cognito User Pool Client ID
+    Value: !Ref CognitoUserPoolClient
+  WafWebAclArn:
+    Description: WAF Web ACL ARN — use this to get the integration URL from the WAF console
+    Value: !GetAtt WafWebAcl.Arn
