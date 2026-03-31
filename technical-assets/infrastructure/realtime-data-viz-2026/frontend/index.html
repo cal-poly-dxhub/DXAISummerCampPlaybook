@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Summer Camp 2026 - Admin Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="login-screen" class="login-container">
+        <div class="login-box">
+            <h1>AI Summer Camp 2026</h1>
+            <p class="login-subtitle">Admin Dashboard</p>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" required autocomplete="current-password">
+                </div>
+                <button type="submit" id="login-btn">Sign In</button>
+                <p id="login-error" class="error-text" hidden></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" hidden>
+        <!-- Top bar -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <h1>AI Summer Camp 2026</h1>
+                <div class="org-filter">
+                    <button class="org-btn active" data-org="all">All</button>
+                    <button class="org-btn" data-org="csu">CSU</button>
+                    <button class="org-btn" data-org="ccc">CCC</button>
+                </div>
+            </div>
+            <div class="topbar-right">
+                <span id="refresh-indicator" class="refresh-dot"></span>
+                <span id="last-updated"></span>
+                <button id="logout-btn" class="btn-logout">Logout</button>
+            </div>
+        </header>
+
+        <!-- Summary cards -->
+        <section class="cards">
+            <div class="card">
+                <div class="card-label">Total Applicants</div>
+                <div class="card-value" id="card-total">--</div>
+                <div class="card-detail" id="card-total-detail"></div>
+            </div>
+            <div class="card">
+                <div class="card-label">Qualified Applicants <span class="info-icon">i<span class="tooltip">Qualified Applicants are applicants that are above the age of 18 by the date of the camp and have a valid email address. Emails must be .edu for CSU.</span></span></div>
+                <div class="card-value" id="card-qualified">--</div>
+            </div>
+            <div class="card">
+                <div class="card-label">Institutions Represented</div>
+                <div class="card-value" id="card-institutions">--</div>
+            </div>
+            <div class="card">
+                <div class="card-label">Quiz Submissions</div>
+                <div class="card-value" id="card-quiz-submissions">--</div>
+            </div>
+            <div class="card">
+                <div class="card-label">Quiz Completion Rate <span class="info-icon">i<span class="tooltip">Percentage of applicants who have also completed the quiz.</span></span></div>
+                <div class="card-value" id="card-quiz-completion">--</div>
+            </div>
+            <div class="card">
+                <div class="card-label">Avg Quiz Score</div>
+                <div class="card-value" id="card-avg-score">--</div>
+            </div>
+        </section>
+
+        <!-- Charts grid -->
+        <section class="charts-grid">
+            <div class="chart-box wide">
+                <h3>Application Trend</h3>
+                <canvas id="chart-trend"></canvas>
+            </div>
+            <div class="chart-box">
+                <h3>Applicants by Institution</h3>
+                <canvas id="chart-institution"></canvas>
+            </div>
+            <div class="chart-box">
+                <h3>Major Categories</h3>
+                <canvas id="chart-major"></canvas>
+            </div>
+            <div class="chart-box">
+                <h3>Computing Majors vs Other Majors <span class="info-icon">i<span class="tooltip">Computing Majors include: Computer Science, Software Engineering, Computer Engineering, Information Technology, Information Systems, Cybersecurity, Data Science, Artificial Intelligence, Machine Learning</span></span></h3>
+                <canvas id="chart-cs-major"></canvas>
+            </div>
+            <div class="chart-box">
+                <h3>CSU: Years of Instruction</h3>
+                <canvas id="chart-years-csu"></canvas>
+                <p class="chart-avg" id="avg-years-csu">Average: --</p>
+            </div>
+            <div class="chart-box">
+                <h3>CCC: Semesters/Quarters Attended</h3>
+                <canvas id="chart-years-ccc"></canvas>
+                <p class="chart-avg" id="avg-years-ccc">Average: --</p>
+            </div>
+            <div class="chart-box">
+                <h3>Application vs Quiz Status</h3>
+                <canvas id="chart-crossref"></canvas>
+            </div>
+            <div class="chart-box">
+                <h3>Quiz Score Distribution</h3>
+                <canvas id="chart-scores"></canvas>
+                <p class="chart-avg" id="avg-scores">Average: --</p>
+            </div>
+            <div class="chart-box">
+                <h3>Quiz Attempts</h3>
+                <canvas id="chart-attempts"></canvas>
+                <p class="chart-avg" id="avg-attempts">Average: --</p>
+            </div>
+            <div class="chart-box">
+                <h3>Application: AI Experience (1-5)</h3>
+                <canvas id="chart-app-ai-exp"></canvas>
+                <p class="chart-avg" id="avg-app-ai-exp">Average: --</p>
+            </div>
+            <div class="chart-box">
+                <h3>Application: Cloud Experience (1-5)</h3>
+                <canvas id="chart-app-cloud-exp"></canvas>
+                <p class="chart-avg" id="avg-app-cloud-exp">Average: --</p>
+            </div>
+            <div class="chart-box">
+                <h3>Application: AI Assistant Experience (1-5)</h3>
+                <canvas id="chart-app-assistant-exp"></canvas>
+                <p class="chart-avg" id="avg-app-assistant-exp">Average: --</p>
+            </div>
+            <div class="chart-box">
+                <h3>Quiz: Technical Ability (1-5)</h3>
+                <canvas id="chart-quiz-tech"></canvas>
+                <p class="chart-avg" id="avg-quiz-tech">Average: --</p>
+            </div>
+            <div class="chart-box wide">
+                <h3>Avg Technical Experience by Institution</h3>
+                <canvas id="chart-tech-by-institution"></canvas>
+            </div>
+        </section>
+
+        <!-- Data table -->
+        <section class="data-section">
+            <h2>Recent Applications</h2>
+            <div class="table-wrap">
+                <table id="applications-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Org</th>
+                            <th>Institution</th>
+                            <th>Major</th>
+                            <th>CS Background</th>
+                            <th>18+</th>
+                            <th>Submitted</th>
+                        </tr>
+                    </thead>
+                    <tbody id="applications-tbody"></tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <script src="charts.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

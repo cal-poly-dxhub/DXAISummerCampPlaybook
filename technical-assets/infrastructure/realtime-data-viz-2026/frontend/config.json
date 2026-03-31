@@ -1,0 +1,4 @@
+{
+  "apiBaseUrl": "https://v2jdu1mi22.execute-api.us-west-2.amazonaws.com/prod",
+  "refreshIntervalMs": 30000
+}

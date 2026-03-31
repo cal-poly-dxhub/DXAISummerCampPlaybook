@@ -1,0 +1,166 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Realtime Data Visualization Dashboard for AI Summer Camp 2026
+
+Parameters:
+  WebhookSecret:
+    Type: String
+    NoEcho: true
+    Description: Shared secret for CognitoForms webhook validation
+  DashboardPassword:
+    Type: String
+    NoEcho: true
+    Description: Shared password for admin dashboard access
+  QuizTableName:
+    Type: String
+    Default: quiz-submissions
+    Description: Name of the existing quiz submissions DynamoDB table
+  DashboardOrigin:
+    Type: String
+    Default: "*"
+    Description: Allowed CORS origin for the dashboard frontend
+
+Globals:
+  Function:
+    Runtime: python3.12
+    Timeout: 30
+    MemorySize: 256
+    Environment:
+      Variables:
+        APPLICATIONS_TABLE: !Ref ApplicationsTable
+        QUIZ_TABLE: !Ref QuizTableName
+        ALLOWED_ORIGINS: !Ref DashboardOrigin
+
+Resources:
+  # ---- DynamoDB ----
+  ApplicationsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: camp-applications
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: org
+          AttributeType: S
+        - AttributeName: submittedAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: OrgIndex
+          KeySchema:
+            - AttributeName: org
+              KeyType: HASH
+            - AttributeName: submittedAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  # ---- API Gateway ----
+  DashboardApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+      Cors:
+        AllowMethods: "'GET,POST,OPTIONS'"
+        AllowHeaders: "'Content-Type,Authorization,X-Webhook-Secret'"
+        AllowOrigin: !Sub "'${DashboardOrigin}'"
+      MethodSettings:
+        - HttpMethod: "*"
+          ResourcePath: "/*"
+          ThrottlingBurstLimit: 10
+          ThrottlingRateLimit: 5
+      GatewayResponses:
+        DEFAULT_4XX:
+          ResponseParameters:
+            Headers:
+              Access-Control-Allow-Origin: !Sub "'${DashboardOrigin}'"
+              Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Webhook-Secret'"
+              Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
+        DEFAULT_5XX:
+          ResponseParameters:
+            Headers:
+              Access-Control-Allow-Origin: !Sub "'${DashboardOrigin}'"
+              Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Webhook-Secret'"
+              Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
+
+  # ---- Lambda: Webhook Receiver ----
+  WebhookFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: dashboard-webhook
+      Handler: webhook_handler.lambda_handler
+      CodeUri: src/
+      Environment:
+        Variables:
+          WEBHOOK_SECRET: !Ref WebhookSecret
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: dynamodb:PutItem
+              Resource: !GetAtt ApplicationsTable.Arn
+      Events:
+        Webhook:
+          Type: Api
+          Properties:
+            RestApiId: !Ref DashboardApi
+            Path: /webhook/{org}
+            Method: POST
+
+  # ---- Lambda: Dashboard API ----
+  DashboardFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: dashboard-api
+      Handler: dashboard_handler.lambda_handler
+      CodeUri: src/
+      Environment:
+        Variables:
+          DASHBOARD_PASSWORD: !Ref DashboardPassword
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:Scan
+                - dynamodb:GetItem
+                - dynamodb:Query
+              Resource:
+                - !GetAtt ApplicationsTable.Arn
+                - !Sub "${ApplicationsTable.Arn}/index/*"
+                - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${QuizTableName}"
+      Events:
+        Stats:
+          Type: Api
+          Properties:
+            RestApiId: !Ref DashboardApi
+            Path: /api/stats
+            Method: GET
+        Applications:
+          Type: Api
+          Properties:
+            RestApiId: !Ref DashboardApi
+            Path: /api/applications
+            Method: GET
+        Quiz:
+          Type: Api
+          Properties:
+            RestApiId: !Ref DashboardApi
+            Path: /api/quiz
+            Method: GET
+        Combined:
+          Type: Api
+          Properties:
+            RestApiId: !Ref DashboardApi
+            Path: /api/combined
+            Method: GET
+
+Outputs:
+  ApiUrl:
+    Description: API Gateway endpoint URL
+    Value: !Sub "https://${DashboardApi}.execute-api.${AWS::Region}.amazonaws.com/prod"

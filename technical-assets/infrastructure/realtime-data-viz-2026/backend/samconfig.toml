@@ -1,0 +1,15 @@
+version = 0.1
+
+[default.deploy.parameters]
+stack_name = "realtime-data-viz-2026"
+resolve_s3 = true
+s3_prefix = "realtime-data-viz-2026"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+disable_rollback = true
+parameter_overrides = "QuizTableName=\"quiz-submissions\" DashboardOrigin=\"*\""
+image_repositories = []
+profile = "AdministratorAccess-077938161517"
+
+[default.global.parameters]
+region = "us-west-2"
