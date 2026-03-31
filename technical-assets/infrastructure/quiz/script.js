@@ -226,7 +226,7 @@
     orgKey = params.get("org") || (hostMatch && hostMatch[1].toLowerCase()) || config.defaultOrg || "csu";
     var orgConfig = (config.orgs && config.orgs[orgKey]) || (config.orgs && config.orgs["csu"]) || {};
 
-    config.title = orgConfig.title || config.title || "DxHub Summer Hackathon";
+    config.title = orgConfig.title || config.title || "AI Summer Camp";
     config.description = orgConfig.description || config.description || "";
 
     if (orgConfig.logo) {

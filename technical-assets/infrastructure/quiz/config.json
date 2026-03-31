@@ -8,14 +8,14 @@
   "wafCaptchaApiKey": "ZFn3wHEqlCVN7Knq75K/bnlTKcYLlPA/uNOlzxxSjliB/mS2aDIKUB4xUYjcmLO92xu4Z5plWji63ZlOWl645bWy92dWHezXw5HIZ2i2iekN3sQ1FBTZEuxtElUDBz+t1oeu8H63xH8MXj2eZTGM4B+LBzt6972PbFk06Pu8r9DW1EXohTq+Qa1WS/jkRMG1OhZEBtjzX33S77e+S8l5w99svzdJt5PEqTDFh04/0VjAvxWyvkHEA3Rg6viwsAjPE/JHZsgTtYsh+5oamnx4z6ivqoSXAiviXnA/dSJZsnB0ZZF14MDG0YZ1llA8LjYZCUpWormHRIF3j3iAb32Bxnl0X7+7mTCDe702ftlalH4ouymLK8VIG320XJVoTIJaoNo+9/FvzIhqUzipZbBY6OPNxRigWF/50Fs644j6VGrz3ekOAYlRJgQYAdexPjw+t5K7u64EDoOUiBeFGhDLpzTOImAbsBayGhRHhZXgjz4yArnRFJZWziyKdvZS4CYyE9571LVOfvGmMSz+KzQr31pC9uSLYCHJpp4pibfh3j1PRki1CujKmEqNZ4s1zDOMS7RY3XTl8HIwxx+nFsFWwNzY7RD/ad5YwDb5QhCaOxaidwfTLd4AOtsUfuW1wfXRMlIPX6Dxw1i8gjKhvw/OfB05PJn5NSfG5QtuO8q4Hwo=_0_1",
   "orgs": {
     "csu": {
-      "title": "DxHub CSU Summer Hackathon",
+      "title": "CSU AI Summer Camp",
       "description": "Welcome! This short quiz is mainly on Amazon Bedrock concepts. There are also general questions on topics relevant to our summer hackathon. Enter your information below to get started.",
       "logo": "poly.png",
       "emailLabel": "Email Address - Use Campus .edu Email Only",
       "requireEdu": true
     },
     "ccc": {
-      "title": "DxHub CCC Summer Hackathon",
+      "title": "CCC AI Summer Camp",
       "description": "Welcome! This short quiz is mainly on Amazon Bedrock concepts. There are also general questions on topics relevant to our summer hackathon. Enter your information below to get started.",
       "logo": "ccc.png",
       "emailLabel": "Email Address",
