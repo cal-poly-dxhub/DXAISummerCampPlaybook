@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Summer Camp 2026 - Admin Dashboard</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <title>Admin Dashboard</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 </head>
@@ -30,11 +31,6 @@
         <header class="topbar">
             <div class="topbar-left">
                 <h1>AI Summer Camp 2026</h1>
-                <div class="org-filter">
-                    <button class="org-btn active" data-org="all">All</button>
-                    <button class="org-btn" data-org="csu">CSU</button>
-                    <button class="org-btn" data-org="ccc">CCC</button>
-                </div>
             </div>
             <div class="topbar-right">
                 <span id="refresh-indicator" class="refresh-dot"></span>
@@ -90,12 +86,12 @@
                 <h3>Computing Majors vs Other Majors <span class="info-icon">i<span class="tooltip">Computing Majors include: Computer Science, Software Engineering, Computer Engineering, Information Technology, Information Systems, Cybersecurity, Data Science, Artificial Intelligence, Machine Learning</span></span></h3>
                 <canvas id="chart-cs-major"></canvas>
             </div>
-            <div class="chart-box">
+            <div class="chart-box" data-org="csu">
                 <h3>CSU: Years of Instruction</h3>
                 <canvas id="chart-years-csu"></canvas>
                 <p class="chart-avg" id="avg-years-csu">Average: --</p>
             </div>
-            <div class="chart-box">
+            <div class="chart-box" data-org="ccc">
                 <h3>CCC: Semesters/Quarters Attended</h3>
                 <canvas id="chart-years-ccc"></canvas>
                 <p class="chart-avg" id="avg-years-ccc">Average: --</p>
@@ -140,27 +136,6 @@
             </div>
         </section>
 
-        <!-- Data table -->
-        <section class="data-section">
-            <h2>Recent Applications</h2>
-            <div class="table-wrap">
-                <table id="applications-table">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Org</th>
-                            <th>Institution</th>
-                            <th>Major</th>
-                            <th>CS Background</th>
-                            <th>18+</th>
-                            <th>Submitted</th>
-                        </tr>
-                    </thead>
-                    <tbody id="applications-tbody"></tbody>
-                </table>
-            </div>
-        </section>
     </div>
 
     <script src="charts.js"></script>

@@ -7,7 +7,7 @@ s3_prefix = "realtime-data-viz-2026"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
 disable_rollback = true
-parameter_overrides = "QuizTableName=\"quiz-submissions\" DashboardOrigin=\"*\""
+parameter_overrides = "QuizTableName=\"quiz-submissions\" DashboardOrigins=\"https://dashboard.csu.aicamp.calpoly.io,https://dashboard.ccc.aicamp.calpoly.io,https://dqprl6flylygc.cloudfront.net,https://dlttp8yd3f1wq.cloudfront.net\""
 image_repositories = []
 profile = "AdministratorAccess-077938161517"
 

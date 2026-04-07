@@ -21,8 +21,11 @@ dynamodb = boto3.resource("dynamodb")
 applications_table = dynamodb.Table(os.environ["APPLICATIONS_TABLE"])
 quiz_table = dynamodb.Table(os.environ["QUIZ_TABLE"])
 
-ALLOWED_ORIGINS = os.environ.get("ALLOWED_ORIGINS", "*")
+ALLOWED_ORIGINS = {o.strip() for o in os.environ.get("ALLOWED_ORIGINS", "").split(",") if o.strip()}
 DASHBOARD_PASSWORD = os.environ.get("DASHBOARD_PASSWORD", "")
+
+# Thread-local-ish: set per-request by lambda_handler
+_request_origin = ""
 
 
 class DecimalEncoder(json.JSONEncoder):
@@ -33,8 +36,9 @@ class DecimalEncoder(json.JSONEncoder):
 
 
 def cors_headers():
+    origin = _request_origin if _request_origin in ALLOWED_ORIGINS else ""
     return {
-        "Access-Control-Allow-Origin": ALLOWED_ORIGINS,
+        "Access-Control-Allow-Origin": origin,
         "Access-Control-Allow-Headers": "Content-Type,Authorization,X-Webhook-Secret",
         "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
     }
@@ -80,7 +84,7 @@ def get_quiz_data(org_filter="all"):
     return items
 
 
-def build_stats(applications, quiz_items):
+def build_stats(applications, quiz_items, all_quiz_items=None, org_filter="all"):
     """Build aggregated statistics from applications and quiz data."""
     # Application stats
     total = len(applications)
@@ -212,14 +216,40 @@ def build_stats(applications, quiz_items):
     avg_score = round(sum(quiz_scores) / len(quiz_scores), 1) if quiz_scores else 0
 
     # Cross-reference: applications vs quiz by email
+    # Use all quiz data for overlap detection (quiz "uni" field is unreliable).
+    # For "Quiz Only" on per-org views: determine org from applications table —
+    # anyone who applied as CSU is CSU, everyone else is treated as CCC.
+    all_quiz_emails = {q.get("email", "").lower() for q in (all_quiz_items or quiz_items) if q.get("quizTaken")}
     app_emails = {a.get("email", "").lower() for a in applications}
-    quiz_emails = {q.get("email", "").lower() for q in quiz_items if q.get("quizTaken")}
-    both = app_emails & quiz_emails
-    app_only = app_emails - quiz_emails
-    quiz_only = quiz_emails - app_emails
+    both = app_emails & all_quiz_emails
+    app_only = app_emails - all_quiz_emails
 
-    # Application trend sorted by date
-    trend = [{"date": d, "count": c} for d, c in sorted(by_date.items())]
+    if org_filter == "all":
+        quiz_only = all_quiz_emails - app_emails
+    else:
+        # Quiz-only people have no application, so we can't determine org from
+        # applications. Rule: anyone not flagged as CSU is CCC.
+        all_app_emails = {a.get("email", "").lower() for a in get_applications("all")}
+        all_quiz_only = all_quiz_emails - all_app_emails
+        if org_filter == "csu":
+            quiz_only = set()  # no application = not CSU
+        else:
+            quiz_only = all_quiz_only  # CCC gets all quiz-only people
+
+    # Application trend sorted by date, filling gaps with 0
+    if by_date:
+        from datetime import datetime, timedelta
+        sorted_dates = sorted(by_date.keys())
+        start = datetime.strptime(sorted_dates[0], "%Y-%m-%d")
+        end = datetime.strptime(sorted_dates[-1], "%Y-%m-%d")
+        trend = []
+        current = start
+        while current <= end:
+            d = current.strftime("%Y-%m-%d")
+            trend.append({"date": d, "count": by_date.get(d, 0)})
+            current += timedelta(days=1)
+    else:
+        trend = []
 
     return {
         "totalApplicants": {
@@ -272,8 +302,20 @@ def handle_stats(event):
     org = params.get("org", "all").lower()
 
     applications = get_applications(org)
-    quiz_items = get_quiz_data(org)
-    stats = build_stats(applications, quiz_items)
+    all_quiz_items = get_quiz_data("all")
+
+    # Quiz "uni" field is unreliable. Determine quiz org from applications:
+    # CSU = quiz email matches a CSU application, CCC = everyone else.
+    if org == "all":
+        quiz_items = all_quiz_items
+    else:
+        csu_app_emails = {a.get("email", "").lower() for a in get_applications("csu")} if org != "all" else set()
+        if org == "csu":
+            quiz_items = [q for q in all_quiz_items if q.get("email", "").lower() in csu_app_emails]
+        else:
+            quiz_items = [q for q in all_quiz_items if q.get("email", "").lower() not in csu_app_emails]
+
+    stats = build_stats(applications, quiz_items, all_quiz_items, org)
 
     return response(200, stats)
 
@@ -394,6 +436,9 @@ def check_auth(event):
 
 def lambda_handler(event, context):
     """Main router for dashboard API."""
+    global _request_origin
+    _request_origin = (event.get("headers") or {}).get("origin") or (event.get("headers") or {}).get("Origin") or ""
+
     if event.get("httpMethod") == "OPTIONS":
         return response(200, {"message": "ok"})
 

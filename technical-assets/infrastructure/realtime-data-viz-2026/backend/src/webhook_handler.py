@@ -19,7 +19,9 @@ dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table(os.environ["APPLICATIONS_TABLE"])
 
 WEBHOOK_SECRET = os.environ.get("WEBHOOK_SECRET", "")
-ALLOWED_ORIGINS = os.environ.get("ALLOWED_ORIGINS", "*")
+ALLOWED_ORIGINS = {o.strip() for o in os.environ.get("ALLOWED_ORIGINS", "").split(",") if o.strip()}
+
+_request_origin = ""
 
 # CognitoForms field name mappings per org.
 # Verified from actual webhook payloads captured 2026-03-31.
@@ -53,8 +55,9 @@ FIELD_MAPS = {
 
 
 def cors_headers():
+    origin = _request_origin if _request_origin in ALLOWED_ORIGINS else ""
     return {
-        "Access-Control-Allow-Origin": ALLOWED_ORIGINS,
+        "Access-Control-Allow-Origin": origin,
         "Access-Control-Allow-Headers": "Content-Type,Authorization,X-Webhook-Secret",
         "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
     }
@@ -175,6 +178,9 @@ def extract_fields(payload, org):
 
 def lambda_handler(event, context):
     """Handle incoming CognitoForms webhook POST."""
+    global _request_origin
+    _request_origin = (event.get("headers") or {}).get("origin") or (event.get("headers") or {}).get("Origin") or ""
+
     # Handle OPTIONS preflight
     if event.get("httpMethod") == "OPTIONS":
         return response(200, {"message": "ok"})

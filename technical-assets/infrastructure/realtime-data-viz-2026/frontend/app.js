@@ -5,7 +5,7 @@
 
 let CONFIG = {};
 let dashboardPassword = null;
-let currentOrg = "all";
+let currentOrg = null;
 let refreshTimer = null;
 
 // ---- Init ----
@@ -13,6 +13,12 @@ let refreshTimer = null;
 async function init() {
     const resp = await fetch("config.json");
     CONFIG = await resp.json();
+    currentOrg = CONFIG.org || "all";
+    const orgLabel = currentOrg.toUpperCase();
+    const siteTitle = `${orgLabel} AI Summer Camp 2026`;
+    document.title = siteTitle + " - Admin Dashboard";
+    document.querySelector("#login-screen h1").textContent = siteTitle;
+    document.querySelector("#dashboard .topbar h1").textContent = siteTitle;
 
     // Check for stored session
     const saved = sessionStorage.getItem("dashPassword");
@@ -78,15 +84,12 @@ function showDashboard() {
     document.getElementById("login-screen").hidden = true;
     document.getElementById("dashboard").hidden = false;
 
-    // Org filter buttons
-    document.querySelectorAll(".org-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-            document.querySelectorAll(".org-btn").forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
-            currentOrg = btn.dataset.org;
-            fetchAndRender();
+    // Hide org-specific charts that don't belong to this site
+    if (currentOrg === "csu" || currentOrg === "ccc") {
+        document.querySelectorAll(".chart-box[data-org]").forEach((el) => {
+            el.hidden = el.dataset.org !== currentOrg;
         });
-    });
+    }
 
     document.getElementById("logout-btn").addEventListener("click", logout);
 
@@ -113,14 +116,12 @@ async function fetchAndRender() {
     dot.classList.add("loading");
 
     try {
-        const [stats, appData] = await Promise.all([
+        const [stats] = await Promise.all([
             apiFetch(`/api/stats?org=${currentOrg}`),
-            apiFetch(`/api/applications?org=${currentOrg}`),
         ]);
 
         updateCards(stats);
         renderCharts(stats);
-        renderTable(appData.applications || []);
 
         document.getElementById("last-updated").textContent =
             `Updated ${new Date().toLocaleTimeString()}`;
@@ -134,8 +135,7 @@ async function fetchAndRender() {
 function updateCards(stats) {
     const total = stats.totalApplicants || {};
     document.getElementById("card-total").textContent = total.all || 0;
-    document.getElementById("card-total-detail").textContent =
-        `CSU: ${total.csu || 0} | CCC: ${total.ccc || 0}`;
+    document.getElementById("card-total-detail").textContent = "";
     document.getElementById("card-qualified").textContent = stats.qualifiedApplicants || 0;
     document.getElementById("card-institutions").textContent = stats.institutionsCount || 0;
 
@@ -150,32 +150,6 @@ function updateCards(stats) {
 
     document.getElementById("card-avg-score").textContent =
         quiz.averageScore ? `${quiz.averageScore}%` : "--";
-}
-
-function renderTable(applications) {
-    const tbody = document.getElementById("applications-tbody");
-    tbody.innerHTML = "";
-
-    for (const app of applications.slice(0, 100)) {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-            <td>${esc(app.firstName || "")} ${esc(app.lastName || "")}</td>
-            <td>${esc(app.email || "")}</td>
-            <td><span class="org-tag">${esc(app.org || "")}</span></td>
-            <td>${esc(app.institution || "")}</td>
-            <td>${esc(app.majorCategory || "")}</td>
-            <td>${app.csBackground ? "Yes" : "No"}</td>
-            <td>${app.isOfAge ? "Yes" : "No"}</td>
-            <td>${esc((app.submittedAt || "").slice(0, 10))}</td>
-        `;
-        tbody.appendChild(tr);
-    }
-}
-
-function esc(str) {
-    const d = document.createElement("div");
-    d.textContent = str;
-    return d.innerHTML;
 }
 
 // ---- Boot ----
